@@ -14,7 +14,6 @@
 
 | 문서 | 역할 |
 |---|---|
-| [AGENTS.md](../AGENTS.md) | 공용 개발 규칙과 책임 경계 |
 | [architecture.md](architecture.md) | 시스템 구성, 로봇 식별, Discovery와 실행 환경 |
 | [interfaces.md](interfaces.md) | 최종 Action·메시지·서비스·토픽 계약 |
 | [scenarios.md](scenarios.md) | 공용 시나리오와 팀별 책임 |
