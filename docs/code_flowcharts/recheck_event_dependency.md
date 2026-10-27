@@ -1,6 +1,6 @@
 # recheck_event.py — 현재 순찰 코드가 호출하는 의존 경로
 
-**구현 대조 완료: 2026-09-11 07:33:59 KST 소스 스냅샷.** [recheck_event.py](../../src/patrol_amr_safety/patrol_amr_safety/recheck_event.py) 145행, SHA-256 `416520abb1300d42e5dccb14f6b0ea650e247b0439226b426a8acb586a5f43fc`. 기존 Markdown 대신 Python 소스를 근거로 작성했다. 이 부록은 [genius_patrol 전체·상세 흐름](genius_patrol.md)의 실제 호출 경로를 보충한다. R:L번호는 이 파일의 줄 번호다.
+**구현 대조 완료: 2026-09-11 07:33:59 KST 소스 스냅샷.** recheck_event.py 145행, SHA-256 `416520abb1300d42e5dccb14f6b0ea650e247b0439226b426a8acb586a5f43fc`. 기존 Markdown 대신 Python 소스를 근거로 작성했다. 이 부록은 [genius_patrol 전체·상세 흐름](genius_patrol.md)의 실제 호출 경로를 보충한다. R:L번호는 이 파일의 줄 번호다.
 
 현재 입력은 **`std_msgs/msg/Float32`의 `data`**이며 `vision/detecting_event`를 구독한다. `event_id`, `detected`, 카메라 stamp가 있는 JSON을 받는 코드가 아니다. 입력이 일정 시간 끊기면 정지·1초 영상 전달·원래 순찰 단계 재개로 진행한다. 무신호만으로 정렬 성공·대상 소실·연결 단절 중 어느 원인인지 구분하지 않는다.
 
