@@ -34,22 +34,20 @@
 
 ### ▶ 시연 영상
 
-https://github.com/user-attachments/assets/7fb026e4-e6d3-4c78-8371-db6e1a35319d
+https://github.com/user-attachments/assets/c60197ef-d87e-4d44-82f0-a03078c54a2f
 
-정상 순찰(웨이포인트 이동 · 회전 관측 · 복귀 도킹), 안전구역 이동과 재개, 순찰 중 이상 감지 후 정지와 시스템 모니터 기록, CCTV 차량 진입 탐지를 담은 시연입니다.
+정상 순찰(웨이포인트 이동 · 회전 관측 · 복귀 도킹) → 차량 진입 시 안전구역 이동과 주차 후 재개 → 이벤트 로그 기록과 조회 → 이상 감지 후 정지와 재개 순서로 담은 1분 시연입니다. 기능별 장면(GIF)은 아래 [✨ 핵심 기능](#-핵심-기능)에 있습니다.
 
 ### 🖥️ 시스템 모니터 화면
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/a7e4fc38-c5a6-4a8a-93e7-e98379272074" width="760" alt="시스템 모니터 대시보드"><br>
-  <sub>개선 후 대시보드 — 상단 상태 요약, 지도 · 4분할 영상 · 최근 로그, 화면 폭에 따라 3열 → 2열 → 1열 전환</sub>
+  <img src="docs/images/dashboard.jpg" width="760" alt="시스템 모니터 통합 대시보드"><br>
+  <sub>통합 대시보드 — 지도 · 로봇 카메라 · CCTV 4분할 영상 · 이벤트와 차량 로그 (가운데는 관제 노드 터미널)</sub>
 </p>
 
-### 🚗 CCTV 차량 탐지 화면
-
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/6d124bce-37a0-4882-8919-b092acb65add" width="760" alt="CCTV 차량 진입 탐지"><br>
-  <sub>차량 진입 비전 탐지 — Gate · Center 웹캠 화면과 비전 터미널</sub>
+  <img src="docs/images/event_log.jpg" width="760" alt="누수 이벤트 상세"><br>
+  <sub>이벤트 상세 — AMR이 감지한 누수(leak 0.86)의 증적 이미지 · 로봇 · 위치 · 처리 이력</sub>
 </p>
 
 ## 💡 한눈에
@@ -82,13 +80,28 @@ Gate는 차량 bbox 중심이 **두 판정선을 넘는 순서**로 입차(`ENTE
 | `EXITING` 출차 중 | Center | `false` (순찰 중지) |
 | `EXITED` 출차 완료 | Gate | `true` (순찰 재개) |
 
+<p align="center">
+  <img src="docs/images/vehicle_response.gif" width="640" alt="차량 진입 시 안전구역 이동과 재개"><br>
+  <sub>차량 진입 → 안전구역 이동 명령, 주차 완료 → 순찰 재개 명령 (대시보드 · 관제 터미널, 3배속)</sub>
+</p>
+
 ### 🤖 AMR 순찰 — 웨이포인트 이동과 회전 관측
 
 TurtleBot 4 Navigator와 Nav2로 도킹 상태에서 출발해 언도킹 → **WP1 ~ WP6 → WP3 재방문 → WP7 → 원점** 순으로 이동하고 다시 도킹합니다. 각 웨이포인트에서는 **제자리 360° 회전**으로 주변을 관측합니다. 순찰은 로봇별 Action 서버(`/{robot}/patrol_action`)에 목표를 보내면 시작합니다([`genius_patrol.py`](src/patrol_amr_safety/patrol_amr_safety/genius_patrol.py)).
 
+<p align="center">
+  <img src="docs/images/patrol_route.gif" width="560" alt="웨이포인트 순찰과 도킹 복귀"><br>
+  <sub>순찰 시작 → 웨이포인트 이동과 제자리 회전 → 도킹 스테이션 복귀 (4배속)</sub>
+</p>
+
 ### 🔥 이상 감지 → 정지 → 증적 저장 → 재개
 
 AMR의 OAK-D 카메라 영상을 YOLO11n(화재 · 누수 · 적치물)으로 보고, confidence 0.70 이상이 **1초 동안 이어지면** 사건으로 확정합니다. 확정되면 순찰 정지 서비스(`/{robot}/patrol_stop`)로 그 자리에 멈추고, 종류 · 위치 · 시각 · 이미지를 **`ReportDetection` 서비스로 시스템 모니터에 저장**한 뒤, 저장이 성공하면 재개 토픽(`/{robot}/patrol_resume`)으로 **멈췄던 단계부터** 순찰을 이어 갑니다([`vision_node_v2.py`](src/patrol_amr_safety/patrol_amr_safety/vision_node_v2.py) · [`event_check.py`](src/patrol_amr_safety/patrol_amr_safety/event_check.py)).
+
+<p align="center">
+  <img src="docs/images/detect_stop_resume.gif" width="640" alt="이벤트 감지 후 정지와 재개"><br>
+  <sub>이벤트 감지 → 순찰 정지 → 재개 (터미널 로그 · 지도, 1.5배속 · 부분 통합 시연)</sub>
+</p>
 
 ### 🛟 안전구역 이동과 재개
 
@@ -109,14 +122,36 @@ AMR의 OAK-D 카메라 영상을 YOLO11n(화재 · 누수 · 적치물)으로 �
 PC 4대, TurtleBot 4 두 대, 웹캠 두 대로 구성합니다. 개발한 팀과 실제로 실행되는 장비를 구분합니다(비전팀의 AMR 감지 노드는 각 AMR PC에서 실행).
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/d415207a-2dcd-4bbc-b1b4-2d87e503e56e" width="420" alt="환경 구성 및 배치"><br>
-  <sub>시연 환경 — 순찰 경로 · 웨이포인트 · 주차 구역 · 웹캠 위치(입출차 구역 / 주차 구역) · RC 카 · 도킹 스테이션</sub>
+  <img src="docs/images/env_overview.jpg" width="640" alt="시연 환경"><br>
+  <sub>시연 환경 — 순찰 경로(분홍 선) · 주차 구역(노란 선) · 웹캠 삼각대 · RC 카 · 도킹 스테이션의 TurtleBot 4</sub>
 </p>
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/469c01ee-7524-42dd-85de-835efb62b4ad" width="520" alt="4PC-2AMR 시스템 아키텍처"><br>
-  <sub>4 PC · 2 AMR 구성과 실행 위치</sub>
-</p>
+```mermaid
+flowchart LR
+    subgraph PC4["PC 4 · 비전"]
+        GATE[gate_cam]
+        CENTER[center_cam]
+        MASTER[cam_master]
+    end
+    subgraph PC3["PC 3 · 관제 / 시스템 모니터"]
+        CTRL["관제 노드<br/>Patrol Action Client"]
+        MON["시스템 모니터<br/>ReportDetection 서버<br/>SQLite · 대시보드"]
+    end
+    subgraph AMR["PC 1 · PC 2 · AMR (robot1 · robot6)"]
+        PATROL["genius_patrol<br/>Nav2 순찰 · 회전 · 도킹"]
+        EVENT["event_check<br/>정지 · 재개"]
+        DET["vision_node_v2<br/>OAK-D 이상 감지"]
+    end
+    GATE -->|CameraState| MASTER
+    CENTER -->|CameraState| MASTER
+    MASTER -->|patrol_allowed| CTRL
+    CTRL -.->|Patrol · DriveToken · PatrolCommand| PATROL
+    DET -->|patrol_stop · patrol_resume| EVENT
+    EVENT --> PATROL
+    DET -->|ReportDetection| MON
+```
+
+<sub>실선은 최종 코드에서 연결된 흐름, 점선은 설계에서 정의했지만 최종 코드에서 직접 연결되지 않은 흐름입니다([설계 대비 구현 상태](#️-시스템-구조) 참고).</sub>
 
 | PC | 역할 | 실행하는 것 | 담당 |
 |---|---|---|---|
@@ -342,7 +377,7 @@ AMR-patrol-system/
 │   ├── patrol_vision/          CCTV 차량 비전(gate_cam · center_cam) · cam_master
 │   ├── patrol_sysmon/          시스템 모니터(Flask · SQLite · 대시보드 · ROS 어댑터)
 │   └── patrol_bringup/         통합 실행 자리(비어 있음)
-├── docs/                       설계 · 인터페이스 · 시나리오 · 통합 · CR · 결정 기록 · 플로우차트
+├── docs/                       설계 · 인터페이스 · 시나리오 · 통합 · CR · 결정 기록 · 플로우차트 · README 이미지(images/)
 ├── data/                       모델 선정 보고서(car_data · detection_data)
 ├── maps/                       순찰 지도
 ├── tests/                      9/10 이전 AMR 구현 대상 시험(현재 코드로는 실행되지 않음)
