@@ -255,8 +255,8 @@ cd /home/hun/finalproject/sysmon
 ## 8. 참고 파일
 
 - [실행·기능 요약](../README.md)
-- [30분 코드리뷰 진행안](code-review-30min.md)
-- [프로젝트 작업 지침](../AGENTS.md)
+- 30분 코드리뷰 진행안
+- 프로젝트 작업 지침
 - [앱 생성](../app/__init__.py)
 - [DB 초기화](../app/database.py), [테이블 구조](../app/schema.sql)
 - [인증 경로](../app/routes/auth.py), [인증 서비스](../app/services/auth_service.py)
@@ -1216,7 +1216,7 @@ EStopState ───→ 최신 1행 + 활성·해제가 바뀐 시점만 이력
 
 ## 34. E-stop 계약 EStop 전환과 RobotStatus safety_state 표시 (2026-09-08)
 
-- 배경: main에 병합된 interfaces.md 3.1·4절(2026-09-08 결정)과 관제 요청서 [CR-관제_09-08_15-15_System_monitor_E-stop_UI_운영상태_연계](../../../docs/change_requests/CR-관제_09-08_15-15_System_monitor_E-stop_UI_운영상태_연계.md)를 반영했다. 기존 구독 타입 `EStopState`는 계약 타입 `EStop`과 달라 DDS 매칭 자체가 되지 않는 상태였다.
+- 배경: main에 병합된 interfaces.md 3.1·4절(2026-09-08 결정)과 관제 요청서 CR-관제_09-08_15-15_System_monitor_E-stop_UI_운영상태_연계를 반영했다. 기존 구독 타입 `EStopState`는 계약 타입 `EStop`과 달라 DDS 매칭 자체가 되지 않는 상태였다.
 - **EStop 전환**: `/control/estop`을 `patrol_interfaces/msg/EStop`으로 구독한다. 계약 필드 `target_robot_id`(robot1·robot6·all)·`active`·`reason`(0~6)·`sequence`만 쓴다. `estop_id`·`message_id`·`manual_reset_required`·`source_id` 의존을 제거했다.
 - 저장: `estop_latest`를 대상별 한 행(PK `target_robot_id`)으로, `estop_history`를 활성·해제·대표 원인이 바뀐 시점만 남기는 구조로 바꿨다. 옛 구조 표는 `_migrate_estop_contract`가 기록이 있으면 `_legacy`로 이름을 바꿔 보존하고 없으면 지운다. 옛 열은 새 계약에 대응 값이 없어 옮기지 않는다.
 - 표시: `/api/safety/status`의 `estop`은 전체 요약(`active`·`state_label`·대표 원인 라벨)과 `targets`(대상별 수신 여부·활성·stale)를 준다. `all` 활성은 두 로봇 모두 정지 대상이라는 뜻이며, 정지 명령이 있었다는 사실만 보여 준다. 실제 정지 여부는 RobotStatus 쪽에서 따로 표시한다. `manual_reset_required`·`latched`는 응답에서 제거했다.
