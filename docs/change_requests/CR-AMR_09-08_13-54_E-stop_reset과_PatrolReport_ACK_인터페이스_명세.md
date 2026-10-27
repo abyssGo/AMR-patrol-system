@@ -6,7 +6,7 @@
 - 요청 단위: AMR
 - 대상 단위 및 로봇: 관제·System monitor·AMR / robot1·robot6
 - 관련 TBD ID: TBD-IF-003, TBD-IF-004
-- 기준 문서·절: [interfaces.md 3.1·5·9절](../interfaces.md), [integration.md IT-11·IT-12](../integration.md), [기존 PatrolReport ACK 검토 요청서](CR-AMR_09-08_10-42_PatrolReport_ACK와_큐_삭제_조건_검토.md)
+- 기준 문서·절: [interfaces.md 3.1·5·9절](../interfaces.md), [integration.md IT-11·IT-12](../integration.md), 기존 PatrolReport ACK 검토 요청서
 - 결정 일자·근거: E-stop 활성 즉시 정지와 PatrolReport 영속 outbox·동일 report ID 재전송은 기존 기준이다. 2026-09-09 사용자는 5절의 ACK 계약을 AMR 요청안으로 확정했다. E-stop reset 부분은 영향 팀 합의 전 **제안**이다.
 - 코드 변경 승인 근거·범위: 이 요청은 인터페이스 명세서 작성만 승인됐다. 공용 메시지·관제·System monitor·AMR 실행 코드 변경은 미승인이다.
 
