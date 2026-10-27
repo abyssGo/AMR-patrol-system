@@ -22,13 +22,14 @@
 4. [🛠️ 시스템 구조](#️-시스템-구조)
 5. [🧩 트러블슈팅](#-트러블슈팅)
 6. [📊 결과](#-결과)
-7. [🌱 배운 점 · 한계](#-배운-점--한계)
-8. [👥 팀 · 역할](#-팀--역할)
-9. [🤝 개발 · 협업 방식](#-개발--협업-방식)
-10. [💻 개발 환경 · 장비](#-개발-환경--장비)
-11. [🚀 설치 · 실행](#-설치--실행)
-12. [📁 문서](#-문서)
-13. [라이선스](#라이선스)
+7. [🔧 프로젝트 종료 후 보완](#-프로젝트-종료-후-보완)
+8. [🌱 배운 점 · 한계](#-배운-점--한계)
+9. [👥 팀 · 역할](#-팀--역할)
+10. [🤝 개발 · 협업 방식](#-개발--협업-방식)
+11. [💻 개발 환경 · 장비](#-개발-환경--장비)
+12. [🚀 설치 · 실행](#-설치--실행)
+13. [📁 문서](#-문서)
+14. [라이선스](#라이선스)
 
 ## 🎬 데모
 
@@ -103,13 +104,13 @@ AMR의 OAK-D 카메라 영상을 YOLO11n(화재 · 누수 · 적치물)으로 �
   <sub>이벤트 감지 → 순찰 정지 → 재개 (터미널 로그 · 지도, 1.5배속 · 부분 통합 시연)</sub>
 </p>
 
-### 🛟 안전구역 이동과 재개
+### 🛟 차량 대응 — 정지와 재개
 
-순찰 중 안전구역 이동 명령(`/{robot}/safety_command`, 1 = 안전구역 이동 · 2 = 순찰 재개)을 받으면 지정된 안전구역 중 하나로 대피해 기다리고, 재개 명령을 받으면 대피 전 단계부터 다시 순찰합니다. 상태는 `PATROLLING → EVACUATING → WAITING`으로 바뀝니다([`move_to_safetyzone.py`](src/patrol_amr_safety/patrol_amr_safety/move_to_safetyzone.py)).
+[`move_to_safetyzone.py`](src/patrol_amr_safety/patrol_amr_safety/move_to_safetyzone.py)에는 안전구역 이동 명령(`/{robot}/safety_command`, 1 = 안전구역 이동 · 2 = 순찰 재개)을 받아 가까운 안전구역으로 대피했다가 대피 전 단계부터 재개하는 기능(`PATROLLING → EVACUATING → WAITING`)이 있습니다. 다만 최종 `genius_patrol`은 정지 · 재개(`event_check`)와 함께 실행되도록 묶여 있어, 이 구성에서는 `safety_command`를 구독하지 않고 **그 자리 정지 → 재개**로 동작합니다. 관제의 차량 대응 명령도 [관제 ↔ AMR 중계](#-프로젝트-종료-후-보완)를 거쳐 같은 정지 · 재개로 연결됩니다.
 
 ### 🎛️ 관제 노드
 
-관제는 로봇별 순찰 목표 전송(`Patrol` Action Client), 주행 권한(`DriveToken`), 실행 중 명령(`PatrolCommand`)을 담당하고, `patrol_allowed`가 바뀌면 순찰 중지 · 재개 명령을 냅니다([`patrol_control_node.py`](src/patrol_control/patrol_control/patrol_control_node.py)).
+관제는 로봇별 순찰 목표 전송(`Patrol` Action Client), 주행 권한(`DriveToken`), 실행 중 명령(`PatrolCommand`)을 담당하고, `patrol_allowed`가 바뀌면 순찰 중지 · 재개 명령을 냅니다([`patrol_control_node.py`](src/patrol_control/patrol_control/patrol_control_node.py)). 관제와 AMR은 프로젝트 기간에는 직접 연결되지 않았고, 종료 후 [중계 노드](#-프로젝트-종료-후-보완)를 더해 연결했습니다.
 
 ### 🖥️ 시스템 모니터
 
@@ -138,6 +139,7 @@ flowchart LR
         MON["시스템 모니터<br/>ReportDetection 서버<br/>SQLite · 대시보드"]
     end
     subgraph AMR["PC 1 · PC 2 · AMR (robot1 · robot6)"]
+        BRIDGE["patrol_amr_bridge<br/>관제 ↔ AMR 중계 (종료 후 추가)"]
         PATROL["genius_patrol<br/>Nav2 순찰 · 회전 · 도킹"]
         EVENT["event_check<br/>정지 · 재개"]
         DET["vision_node_v2<br/>OAK-D 이상 감지"]
@@ -145,18 +147,20 @@ flowchart LR
     GATE -->|CameraState| MASTER
     CENTER -->|CameraState| MASTER
     MASTER -->|patrol_allowed| CTRL
-    CTRL -.->|Patrol · DriveToken · PatrolCommand| PATROL
+    CTRL -.->|Patrol · DriveToken · PatrolCommand| BRIDGE
+    BRIDGE -.->|NavigateToPose patrol_route| PATROL
+    BRIDGE -.->|patrol_stop · patrol_resume| EVENT
     DET -->|patrol_stop · patrol_resume| EVENT
     EVENT --> PATROL
     DET -->|ReportDetection| MON
 ```
 
-<sub>실선은 최종 코드에서 연결된 흐름, 점선은 설계에서 정의했지만 최종 코드에서 직접 연결되지 않은 흐름입니다([설계 대비 구현 상태](#️-시스템-구조) 참고).</sub>
+<sub>실선은 프로젝트 최종 코드에서 연결된 흐름, 점선은 프로젝트 종료 후 중계 노드로 연결한 흐름입니다(빌드 · 정적 검사 · 모의 시험 통과, 실기 미검증 — [프로젝트 종료 후 보완](#-프로젝트-종료-후-보완) 참고).</sub>
 
 | PC | 역할 | 실행하는 것 | 담당 |
 |---|---|---|---|
-| PC 1 | AMR1 제어 (`robot1`) | 순찰 · 정지 · 재개 · 안전구역 이동, AMR 감지 | 조정묵 |
-| PC 2 | AMR2 제어 (`robot6`) | 순찰 · 정지 · 재개 · 안전구역 이동, AMR 감지 | 박성현 |
+| PC 1 | AMR1 제어 (`robot1`) | 순찰 · 정지 · 재개, AMR 감지, (종료 후 추가) 관제 중계 | 조정묵 |
+| PC 2 | AMR2 제어 (`robot6`) | 순찰 · 정지 · 재개, (종료 후 추가) 관제 중계 | 박성현 |
 | PC 3 | 관제 · 시스템 모니터 | 관제 노드, 시스템 모니터(저장 · 대시보드 · `ReportDetection` 서버) | 고희태 · 노홍동 · 이영훈 |
 | PC 4 | 비전 | `gate_cam` · `center_cam` · `cam_master` | 박진용 · 서동권 |
 
@@ -170,11 +174,11 @@ flowchart LR
 |---|---|---|---|
 | Topic | `/vision/cctv/gate_event` · `/vision/cctv/center_event` (`CameraState`) | gate_cam · center_cam → cam_master | 차량 상태 이벤트 |
 | Topic | `/vision/cctv/patrol_allowed` (`Bool`) | cam_master → 관제 | 순찰 허용 여부(5 Hz) |
-| Action | `/{robot}/patrol_action` | 관제 → AMR | 순찰 시작 · 진행 · 결과 |
-| Topic | `/{robot}/drive_token` · `/{robot}/patrol_command` | 관제 → AMR | 주행 권한 · 실행 중 명령 |
-| Service | `/{robot}/patrol_stop` (`SetBool`) | AMR 감지 → AMR 순찰 | 감지 확정 시 현재 위치 정지 |
-| Topic | `/{robot}/patrol_resume` (`Bool`) | AMR 감지 → AMR 순찰 | 증적 저장 후 순찰 재개 |
-| Topic | `/{robot}/safety_command` (`UInt8`) | 운영 명령 → AMR 순찰 | 안전구역 이동 · 재개 |
+| Action | `/{robot}/patrol_action` (`Patrol`) | 관제 → 중계 | 순찰 시작 · 진행 · 결과 |
+| Topic | `/{robot}/drive_token` · `/{robot}/patrol_command` | 관제 → 중계 | 주행 권한 · 실행 중 명령 |
+| Action | `/{robot}/patrol_route` (`NavigateToPose`) | 중계 → AMR 순찰 | 고정 순찰 경로 실행(`genius_patrol`의 `patrol_action`을 remap) |
+| Service | `/{robot}/patrol_stop` (`SetBool`) | AMR 감지 · 중계 → AMR 순찰 | 감지 확정 · 차량 대응 · 권한 회수 시 현재 위치 정지 |
+| Topic | `/{robot}/patrol_resume` (`Bool`) | AMR 감지 · 중계 → AMR 순찰 | 증적 저장 후 · 차량 대응 해제 시 순찰 재개 |
 | Service | `/system_monitor/report_detection` (`ReportDetection`) | AMR 감지 → 시스템 모니터 | 확정 사건과 증적 이미지 저장 |
 
 ### 동작 흐름
@@ -183,7 +187,7 @@ flowchart LR
 ① 시작     순찰 목표를 받으면 언도킹 후 WP1부터 이동
 ② 관측     각 웨이포인트에서 제자리 360° 회전
 ③ 감지     화재 · 누수 · 적치물이 1초 이어지면 정지 → ReportDetection 저장 → 저장 성공 시 같은 단계부터 재개
-④ 대피     안전구역 이동 명령 → 가까운 안전구역으로 이동해 대기 → 재개 명령 → 대피 전 단계부터 순찰
+④ 차량     patrol_allowed=false → 관제 PatrolCommand(1) → 중계 → 그 자리 정지 / true → PatrolCommand(2) → 재개
 ⑤ 종료     WP7 이후 원점 복귀 → 도킹
 CCTV       ENTERING · EXITING → patrol_allowed=false   /   PARKED · EXITED → patrol_allowed=true (관제가 수신)
 ```
@@ -191,15 +195,15 @@ CCTV       ENTERING · EXITING → patrol_allowed=false   /   PARKED · EXITED �
 <details>
 <summary>설계 대비 구현 상태</summary>
 
-설계 문서는 관제가 `Patrol` Action과 `DriveToken`으로 두 AMR을 교대시키는 구조를 목표로 했습니다. 최종 코드에서 구현된 범위는 아래와 같습니다.
+설계 문서는 관제가 `Patrol` Action과 `DriveToken`으로 두 AMR을 교대시키는 구조를 목표로 했습니다. 프로젝트 최종 코드와 종료 후 보완 상태는 아래와 같습니다.
 
-| 설계 | 최종 코드 |
-|---|---|
-| 관제 → AMR `Patrol` Action으로 순찰 지시 | 관제는 `patrol_interfaces/Patrol` 타입으로 요청하고, AMR은 같은 이름의 서버를 `nav2_msgs/NavigateToPose` 타입으로 엽니다. 타입이 달라 관제와 AMR은 직접 연결되지 않으며, 순찰은 이 서버에 `NavigateToPose` 목표를 보내 시작합니다 |
-| `DriveToken`으로 한 번에 한 대만 주행 | 관제는 발행하지만 AMR 순찰 코드는 구독하지 않습니다 |
-| 차량 이동 시 관제가 대피 · 재개 지시 | 관제는 `PatrolCommand`를 발행하고, AMR은 `safety_command`(`UInt8`)로 대피 · 재개를 받습니다 |
-| 감지 · 증적 · 재개 | 구현 — AMR 감지 → 정지 → `ReportDetection` 저장 → 재개 |
-| CCTV → `patrol_allowed` | 구현 |
+| 설계 | 프로젝트 최종 코드 | 종료 후 보완 |
+|---|---|---|
+| 관제 → AMR `Patrol` Action으로 순찰 지시 | 관제는 `patrol_interfaces/Patrol` 타입으로 요청하고, AMR은 같은 이름의 서버를 `nav2_msgs/NavigateToPose` 타입으로 열어 직접 연결되지 않음 | 중계가 `Patrol` 서버를 열고 `genius_patrol`(`patrol_route`로 remap)에 `NavigateToPose` 목표를 전달 |
+| `DriveToken`으로 한 번에 한 대만 주행 | 관제는 발행하지만 AMR 순찰 코드는 구독하지 않음 | 중계가 토큰을 받기 전에는 순찰을 시작하지 않고, 회수 · 만료 시 정지 |
+| 차량 이동 시 관제가 대피 · 재개 지시 | 관제는 `PatrolCommand`를 발행하지만 AMR은 받지 않음(최종 `genius_patrol`은 `safety_command`도 구독하지 않음) | 중계가 `PatrolCommand` 1을 그 자리 정지, 2를 재개로 연결(안전구역 이동은 아님) |
+| 감지 · 증적 · 재개 | 구현 — AMR 감지 → 정지 → `ReportDetection` 저장 → 재개 | 그대로 |
+| CCTV → `patrol_allowed` | 구현 | 그대로 |
 
 </details>
 
@@ -223,15 +227,37 @@ CCTV       ENTERING · EXITING → patrol_allowed=false   /   PARKED · EXITED �
 | 항목 | 결과 | 근거 |
 |---|---|---|
 | 정상 순찰 · 도킹 | WP1 ~ WP7 이동 후 복귀 · 도킹 | 시연 영상 |
-| 안전구역 이동과 재개 | 순찰 중단 → 안전구역 대기 → 재개 | 시연 영상 · 터미널 로그 |
+| 안전구역 이동과 재개(시연) | 순찰 중단 → 안전구역 대기 → 재개 | 시연 영상 · 터미널 로그(최종 `genius_patrol` 구성은 그 자리 정지 · 재개) |
 | 이상 감지와 기록 | 순찰 중 화재 감지 → 정지 → 시스템 모니터 로그 · 이미지 | 시연 영상(부분 통합) |
 | 차량 입출차 탐지 | 관제 + 비전 + 시스템 모니터 통합 | 시연 영상 |
 | 차량 검출 모델 | YOLO11n · Test P 0.987 · R 0.988 · mAP50-95 0.696 (yolov8n · yolo11n · yolo26n 중 Recall 우선 선정) | [차량 모델 선정 보고서](data/car_data/latest_model_selection_report.md) |
 | 이상 감지 모델 | YOLO11n · Test P 0.967 · R 0.997 · mAP50-95 0.700 (후보 6종 중 화재 · 누수 Recall 우선 선정) | [감지 모델 선정 보고서](data/detection_data/latest_model_selection_report.md) |
 | 시스템 모니터 단위 시험 | 123개 중 **122개 통과** · 6개 건너뜀 · 1개 실패(시험이 예전 영상 토픽 이름을 기대) | `src/patrol_sysmon/tests` |
 | 전체 AMR 종단 통합시험 | **미실시** | 부분 통합까지 검증 |
+| 관제 ↔ AMR 중계(종료 후 추가) | 빌드 · flake8 · pep257 통과, 단위 · 모의 통합 시험 **25개 통과**, 실제 관제 노드와 모의 AMR 연동 확인 · **실기 미검증** | [프로젝트 종료 후 보완](#-프로젝트-종료-후-보완) |
 
 차량 모델의 최종 적용본은 시연 환경 이미지를 더해 다시 학습한 `car_best_v2`입니다. 모델 성능은 Colab 기준이며 로봇 연산 장치의 실시간 성능과는 구분합니다.
+
+## 🔧 프로젝트 종료 후 보완
+
+프로젝트 기간에는 관제의 `Patrol` 요청과 AMR 순찰 서버의 Action 타입이 달라 관제와 AMR이 직접 연결되지 않았습니다. 종료 후 기존 코드는 그대로 두고, 둘 사이에 **중계 노드 [`patrol_amr_bridge`](src/patrol_amr_bridge/README.md)** 를 새 패키지로 더했습니다.
+
+```text
+관제 ── Patrol Goal ──▶ 중계: 수락 → WAITING_FOR_TOKEN 피드백
+관제 ── DriveToken ───▶ 중계: 토큰 확인 → genius_patrol에 NavigateToPose(patrol_route) 전달 → PATROLLING
+관제 ── PatrolCommand ▶ 중계: 1 → patrol_stop(그 자리 정지) · BLOCKED / 2 → patrol_resume(재개) · RESUMING
+토큰 회수 · 만료(lease) → 정지, 다시 부여 → 재개      Goal 취소 → 정지 후 CANCELED
+genius_patrol 완료(도킹) → SUCCEEDED / 실패 → FAILED(NAVIGATION_FAILED)
+```
+
+| 검증 | 결과 |
+|---|---|
+| `colcon build` (`patrol_interfaces` · `patrol_control` · `patrol_amr_bridge`, ROS 2 Jazzy) | 통과 |
+| `ament_flake8` · `ament_pep257` | 통과 |
+| 단위 시험(중계 판단 로직 16개) · rclpy 모의 통합 시험(7개) · 린트 시험(2개) | **25개 통과** |
+| 실제 `patrol_control_node` + 중계 + 모의 AMR(같은 이름의 `patrol_route` · `patrol_stop` · `patrol_resume`) | 자동 시작 → 토큰 부여 → 차량 진입 정지 → 재개 → `SUCCEEDED` 확인 |
+| `genius_patrol`과 같은 초기화 방식에서 `-r patrol_action:=patrol_route` remap | `/{robot}/patrol_route`로 열리는 것 확인 |
+| TurtleBot 4 실기 종단 시험 | **미실시** |
 
 ## 🌱 배운 점 · 한계
 
@@ -243,11 +269,12 @@ CCTV       ENTERING · EXITING → patrol_allowed=false   /   PARKED · EXITED �
 
 **한계**
 
-- **전체 AMR 종단 통합은 하지 못했습니다.** 관제의 `Patrol` 요청과 AMR 순찰 서버의 Action 타입이 달라 직접 연결되지 않고, AMR은 `DriveToken`을 쓰지 않습니다([설계 대비 구현 상태](#️-시스템-구조)).
+- **프로젝트 기간에 전체 AMR 종단 통합은 하지 못했습니다.** 관제의 `Patrol` 요청과 AMR 순찰 서버의 Action 타입이 달라 직접 연결되지 않았고, AMR은 `DriveToken`을 쓰지 않았습니다. 종료 후 추가한 중계 노드는 모의 시험까지만 검증했고 실기에서는 확인하지 않았습니다([프로젝트 종료 후 보완](#-프로젝트-종료-후-보완)).
+- 최종 `genius_patrol` 구성에서 차량 대응은 그 자리 정지 · 재개이며, `move_to_safetyzone.py`의 안전구역 이동 경로는 쓰이지 않습니다.
 - AMR 감지 노드는 `robot1`과 오도메트리(`/robot1/odom`) 좌표를 쓰도록 고정돼 있습니다. `map` 좌표나 `robot6`로 쓰려면 설정을 바꿔야 합니다.
 - Center의 주차 판정은 bbox 중심점 기준입니다(발표에서 정리한 bbox 전체 기준은 코드에 반영되지 않음).
 - 모델 가중치(`.pt`)는 저장소에 없고, 코드는 개발 PC의 절대경로에서 가중치를 읽습니다([설치 · 실행](#-설치--실행) 참고).
-- 실행 목록(`setup.py`)에 등록됐지만 소스가 없는 노드가 있습니다(`local_safety_supervisor` · `battery_monitor` · `command_gateway` · `status_reporter` · `mission_supervisor` 등). 루트 `tests/`는 9/10 이전 AMR 구현을 대상으로 한 시험이라 현재 코드로는 실행되지 않습니다.
+- 실행 목록(`setup.py`)에 등록됐지만 소스가 없는 노드가 있습니다(`local_safety_supervisor` · `battery_monitor` · `command_gateway` · `status_reporter` · `3_1_c_follow_waypoints` · `mission_supervisor` 등). 루트 `tests/`는 9/10 이전 AMR 구현을 대상으로 한 시험이라 현재 코드로는 실행되지 않습니다.
 - 화재 · 누수는 모형 촛불과 색지로 재현했고, 차량은 1대(RC 카) 조건입니다. 순찰 인력시간 40% 절감 같은 사업 지표는 목표치이며 실증하지 않았습니다.
 
 ## 👥 팀 · 역할
@@ -340,6 +367,23 @@ python3 -m pytest src/patrol_vision/test/test_p0_camerastate.py -q   # 2 passed
 | PC 1 · PC 2 (AMR) | `ros2 run patrol_amr_safety genius_patrol --robot-id robot1` (PC 2는 `robot6`) |
 | PC 1 (AMR 감지) | `ros2 run patrol_amr_safety vision_node_v2` (코드에 `robot1`로 고정) |
 | PC 3 (관제) | `ros2 run patrol_control patrol_control_node` |
+
+**관제와 연결해 실행(종료 후 추가, 실기 미검증):** AMR 순찰 서버 이름을 `patrol_route`로 바꿔 띄우고, 같은 PC에서 중계를 함께 실행합니다. 관제가 순찰을 직접 시작하려면 `auto_start`를 켭니다.
+
+```bash
+# PC 1 (PC 2는 robot1 → robot6)
+ros2 run patrol_amr_safety genius_patrol --robot-id robot1 --ros-args -r patrol_action:=patrol_route
+ros2 launch patrol_amr_bridge amr_bridge.launch.py robot_id:=robot1
+# PC 3
+ros2 run patrol_control patrol_control_node --ros-args -p auto_start:=true
+```
+
+중계 시험(ROS 2 Jazzy, 로봇 불필요):
+
+```bash
+colcon build --packages-select patrol_interfaces patrol_amr_bridge && source install/setup.bash
+cd src/patrol_amr_bridge && python3 -m pytest test -q    # 25 passed
+```
 | PC 3 (시스템 모니터) | 위 빠른 시작의 `run.py` |
 
 **모델 가중치:** 가중치는 저장소에 없습니다. 코드는 아래 절대경로에서 가중치를 읽으므로, 실행할 PC의 같은 경로에 두어야 합니다. 경로의 `patrol/` 아래는 저장소 구조와 같습니다.
@@ -361,6 +405,7 @@ python3 -m pytest src/patrol_vision/test/test_p0_camerastate.py -q   # 2 passed
 | [`docs/amr.md`](docs/amr.md) · [`docs/vision.md`](docs/vision.md) · [`docs/control_server.md`](docs/control_server.md) · [`docs/monitoring_and_data.md`](docs/monitoring_and_data.md) | 개발 단위별 설계 |
 | [`docs/change_requests/`](docs/change_requests/README.md) · [`docs/decisions/`](docs/decisions/) | 변경 요청서 10건 · 결정 기록 4건 |
 | [`src/patrol_sysmon/README.md`](src/patrol_sysmon/README.md) | 시스템 모니터 실행 · 구성 · 구현 기록 |
+| [`src/patrol_amr_bridge/README.md`](src/patrol_amr_bridge/README.md) | 관제 ↔ AMR 중계 — 동작 · 실행 · 시험(종료 후 추가) |
 | [`data/`](data/) | 차량 · 이상 감지 모델 선정 보고서 |
 
 <details>
@@ -370,10 +415,11 @@ python3 -m pytest src/patrol_vision/test/test_p0_camerastate.py -q   # 2 passed
 AMR-patrol-system/
 ├── src/
 │   ├── patrol_interfaces/      공용 계약 2.0.0 (Patrol Action · 메시지 6종 · ReportDetection 서비스)
-│   ├── patrol_amr_safety/      AMR 순찰(genius_patrol) · 정지/재개(event_check) · 안전구역 이동 · AMR 감지(vision_node_v2)
+│   ├── patrol_amr_safety/      AMR 순찰(genius_patrol) · 정지/재개(event_check) · 안전구역 이동(최종 구성 미사용) · AMR 감지(vision_node_v2)
 │   ├── patrol_amr/             AMR 설정 · 지도 · launch · 시나리오
 │   ├── turtlebot4_navigation/  TurtleBot 4 Navigator · Nav2 설정
 │   ├── patrol_control/         관제 노드
+│   ├── patrol_amr_bridge/      관제 ↔ AMR 중계(프로젝트 종료 후 추가)
 │   ├── patrol_vision/          CCTV 차량 비전(gate_cam · center_cam) · cam_master
 │   ├── patrol_sysmon/          시스템 모니터(Flask · SQLite · 대시보드 · ROS 어댑터)
 │   └── patrol_bringup/         통합 실행 자리(비어 있음)
