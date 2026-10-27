@@ -5,7 +5,7 @@
 - 등록 메시지: 16개
 - manifest SHA-256: `ed46754623f43db928cb331a61ed4b918989e1bcb979e6cdc5348741837aa617`
 - 상태: 공용 메시지 소스 반영·로컬 빌드·설치 타입 검증 PASS, 팀별 소비 코드 반영 및 통합시험 대기
-- 관련 요청: [Detection v1.1 팀별 반영 요청](../change_requests/CR-관제_09-09_12-02_Detection_v1.1_팀별_반영.md)
+- 관련 요청: Detection v1.1 팀별 반영 요청
 
 ## 결정
 

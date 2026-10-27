@@ -5,7 +5,7 @@
 - 상태: 현재 단계 계약 확정 · 로컬 소스·소비부 검증 완료 · 다중 PC 통합 검증 미실시
 - 패키지 버전: `patrol_interfaces 1.0.0`
 - 기준 소스: 이 문서와 함께 확정되는 v1.0 commit 및 메시지 manifest
-- 결정 근거: [AMR 명령·Heartbeat·E-stop·상태 계약 확정 회신](../change_requests/CR-AMR_09-08_17-00_명령_Heartbeat_E-stop_상태_계약_확정_회신.md), [AMR 이중 Keepout parameter 계약](../change_requests/CR-AMR_09-08_13-02_이중_Keepout_parameter_계약.md), [TBD-IF-009 cmd_vel 확정](../change_requests/CR-AMR_09-08_08-31_최종_cmd_vel_경로와_주행_후보_토픽.md)
+- 결정 근거: AMR 명령·Heartbeat·E-stop·상태 계약 확정 회신, AMR 이중 Keepout parameter 계약, TBD-IF-009 cmd_vel 확정
 
 이 기준선은 관제 노드 개발에서 사용할 메시지 레이아웃과 확정 동작을 `v1.0`으로 고정한다. 아래 확정 범위만 v1.0 완료 조건이며 남은 TBD는 차기 버전으로 이관한다. 배포 릴리스나 장비 검증 완료를 뜻하지 않으며 Git release tag를 대신하지 않는다.
 
