@@ -6,7 +6,7 @@
 
 각 그림의 상태는 절마다 **설계** 또는 **구현 대조**로 표시한다. 구현 대조는 실제 파일과 맞춘 흐름이고, 설계 그림은 합의할 입력·판단·출력·실패·복구 흐름이다. 그림이 있다는 이유로 구현·시험 완료로 처리하지 않는다. 성현님 파일별 상세 그림은 [미션·내비게이션 구현 대조](../src/patrol_amr/docs/mission_navigation.md)를 기준으로 하고 이 문서 9절에서 빠짐없이 연결한다. **AMR 파트 전체 플로우차트는 10절, launch 파일이 무엇을 구동하는지는 11절**이며 두 절은 두 패키지의 실제 코드를 확인해 작성한 구현 대조다.
 
-기준: [공용 인터페이스](interfaces.md), [AMR 기능·TBD](amr.md), [통합 순서](integration.md), [관제 v1.0 결정](decisions/2026-09-08-control-interface-baseline.md). 2026-09-09 사용자가 제공한 `AMR 공동 구현 계약 v1`의 AMR 내부 결정은 이 문서의 공동 구현 기준으로 반영한다. 화살표를 읽기 위한 값 설명은 이 문서에 표시하되, 공용 메시지·System monitor ACK처럼 다른 개발 단위에 영향을 주는 변경은 기준 문서 갱신·수정 요청·명시적 구현 승인을 거쳐야 한다. 기존 코드별 그림·검증 로그는 [9월 8일 구현·시험 이력](amr_patrol_safety_flowchart_2026-09-08_history.md)에 보존했다.
+기준: [공용 인터페이스](interfaces.md), [AMR 기능·TBD](amr.md), [통합 순서](integration.md), [관제 v1.0 결정](decisions/2026-09-08-control-interface-baseline.md). 2026-09-09 사용자가 제공한 `AMR 공동 구현 계약 v1`의 AMR 내부 결정은 이 문서의 공동 구현 기준으로 반영한다. 화살표를 읽기 위한 값 설명은 이 문서에 표시하되, 공용 메시지·System monitor ACK처럼 다른 개발 단위에 영향을 주는 변경은 기준 문서 갱신·수정 요청·명시적 구현 승인을 거쳐야 한다. 기존 코드별 그림·검증 로그는 9월 8일 구현·시험 이력에 보존했다.
 
 ## 1. 오전 시작 시 확인할 진행 상태와 역할
 
@@ -153,7 +153,7 @@ D11 `/{r}/robot_status`의 타입은 `patrol_interfaces/RobotStatus`다.
 
 `scan_state`의 **현재 임시 문자열**: `UNKNOWN` 미확인, `IDLE` 스캔 작업 없음, `MOVING_TO_WAYPOINT` 순찰점 이동 추정, `SCANNING` 순찰 중 정지에서 추정, `PAUSED` 중단, `FAILED` 실패, `CANCELED` 취소, `COMPLETED` 완료. 마지막 세 값 역시 임무 상태에서 옮긴 임시 표시다. 실제 scan 단계 생산자가 연결되기 전 탐지 성공 판정에 사용하지 않는다.
 
-운영·도킹·scan의 임시 추정은 [임시 정책 TEMP-AMR-STATUS-20260908-v1](development/provisional-amr-status-policy.md)에 별도 기록되어 있다. 성현님이 실제 단계를 제공하면 의미·재시작 처리를 맞춰 대체한다. 공용 enum 숫자는 변경하지 않는다.
+운영·도킹·scan의 임시 추정은 임시 정책 TEMP-AMR-STATUS-20260908-v1에 별도 기록되어 있다. 성현님이 실제 단계를 제공하면 의미·재시작 처리를 맞춰 대체한다. 공용 enum 숫자는 변경하지 않는다.
 
 ### 3.4 두 파트의 내부 인계와 Action
 
@@ -498,7 +498,7 @@ flowchart TD
 | 이벤트·증적의 분류 매핑·토픽·ACK·실패/재전송 | AMR·관제·모니터, TBD-IF-006·007 | 미합의 |
 | PatrolReport 저장 확인·ACK·삭제 조건 | AMR·관제·모니터, TBD-IF-003 | AMR 요청안 확정: System monitor 단일 ACK, 1초 재발행, STORED/DUPLICATE만 삭제, 영향 팀 회신 대기 |
 
-기존 검토 요청: [실제 정지 판단](change_requests/CR-AMR_09-08_23-02_실제_정지_safety_state_판정.md), [운영·도킹 입력 연결](change_requests/CR-AMR_09-08_23-06_운영_도킹_상태_입력_연결.md), [결과 ACK](change_requests/CR-AMR_09-08_10-42_PatrolReport_ACK와_큐_삭제_조건_검토.md). 새 합의는 관련 기준 문서의 기존 TBD에 결정일·근거·영향 범위를 남긴 뒤 구현·시험 상태를 따로 갱신한다.
+기존 검토 요청: [실제 정지 판단](change_requests/CR-AMR_09-08_23-02_실제_정지_safety_state_판정.md), [운영·도킹 입력 연결](change_requests/CR-AMR_09-08_23-06_운영_도킹_상태_입력_연결.md), 결과 ACK. 새 합의는 관련 기준 문서의 기존 TBD에 결정일·근거·영향 범위를 남긴 뒤 구현·시험 상태를 따로 갱신한다.
 
 ## 7. 사용자가 직접 확인할 TurtleBot 4 시험
 
@@ -801,7 +801,7 @@ flowchart TD
 
 ## 11. launch 파일이 무엇을 구동하는가 — 코드리뷰용
 
-10분 안에 끝내는 발표용 축약본은 [AMR 파트 10분 코드리뷰 진행안](development/amr-code-review-10min.md)에 따로 두었다. 이 절은 그 근거가 되는 전체 내용이다.
+10분 안에 끝내는 발표용 축약본은 AMR 파트 10분 코드리뷰 진행안에 따로 두었다. 이 절은 그 근거가 되는 전체 내용이다.
 
 AMR 파트의 launch 파일은 6개다. 안전 패키지에 1개, 미션 패키지에 5개 있다. 이 절은 "이 파일을 실행하면 어떤 프로세스가 몇 개 뜨는가"만 다룬다. 노드 사이 메시지는 10절을 본다.
 
@@ -974,7 +974,7 @@ Nav2 포함 시 `nav2_keepout_filters.yaml`을 덮어쓴다. 이 파일에서 `<
 
 이 문서는 저장소의 Markdown 54개를 읽고 아래 기준 문서의 확정 내용만 모아, 앞으로 코드를 정리할 때 참고할 **노드 단위 Python 파일**, **각 노드가 사용할 내부 모듈**, **박스 사이 메시지 선**을 정리한다.
 
-- [공용 개발 규칙](../AGENTS.md)
+- 공용 개발 규칙
 - [시스템 구조](architecture.md)
 - [공용 ROS 2 인터페이스](interfaces.md)
 - [관제 인터페이스 v1.0](decisions/2026-09-08-control-interface-baseline.md)
