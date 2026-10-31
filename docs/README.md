@@ -16,7 +16,7 @@
 | [amr.md](amr.md) | AMR 순찰·안전·도킹·로컬 감지 |
 | [vision.md](vision.md) | CCTV 차량 상태와 `patrol_allowed` |
 | [monitoring_and_data.md](monitoring_and_data.md) | 감지 보고 저장과 읽기 전용 모니터링 |
-| [integration.md](integration.md) | 통합 순서, 종단시험, 자동 시험 |
+| [integration.md](integration.md) | 통합 순서, 점검 항목, 테스트 |
 | [change_requests/](change_requests/README.md) | 개발 단위 사이 변경 요청 기록 |
 | [decisions/](decisions/) | 설계 결정 기록 |
 | [development/](development/) | 브랜치·PR·버전 관리 규칙 |

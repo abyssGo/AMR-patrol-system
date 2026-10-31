@@ -4,7 +4,7 @@ AMR PC(PC 1 `robot1`, PC 2 `robot6`)에서 실행하는 노드다. 관제(PC 3)�
 `patrol_interfaces 2.1.0`으로, AMR 안의 감지 노드와는 내부 계약
 `patrol_amr_interfaces/DetectEvent`로 연결한다. 설계는 [docs/amr.md](../../docs/amr.md)를 따른다.
 
-> 교대 순찰, EStop, 정렬 회전, 도킹 재시도, 배터리 귀환은 자동 시험으로 확인했고, 전체 시스템과의 통합은 Gazebo로 검증했다([README 7절](../../README.md#7-프로젝트-완료-이후--gazebo-통합-검증)).
+> 교대 순찰, EStop, 정렬 회전, 도킹 재시도, 배터리 귀환은 테스트로 확인했고, 전체 시스템과의 통합은 Gazebo에서 검증했다([README 7절](../../README.md#7-프로젝트-완료-이후--gazebo-통합-검증)).
 
 ## 노드
 

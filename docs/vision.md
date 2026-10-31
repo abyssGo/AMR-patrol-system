@@ -72,7 +72,7 @@ patrol_allowed는 관제 판단 조건이며 AMR에 직접 주행·정지 명령
 
 정상 진입 쌍과 독립 출차 쌍, topic별 enum·camera_id 검증, 중복 제거, timeout 시 마지막 값 유지, 관제 대피·재개 연계를 확인한다. [CCTV 통합시험](integration.md#it-11-cctv)을 참조한다.
 
-CameraState 자동 시험은 `src/patrol_vision/test/test_p0_camerastate.py`에 있다. 현재 2개 시험은 CameraState enum 0~4, camera ID, topic별 허용 상태, patrol_allowed 매핑과 5 Hz 상수를 확인한다. event_id·source_session_id 생성, restart_sequence, 0.2초 실측 경계, topic-camera_id 거부, 순서 역전과 실제 프레임 처리는 이 시험 범위 밖이며 통합시험에서 확인한다.
+CameraState 테스트는 `src/patrol_vision/test/test_p0_camerastate.py`에 있다. 현재 2개 시험은 CameraState enum 0~4, camera ID, topic별 허용 상태, patrol_allowed 매핑과 5 Hz 상수를 확인한다. event_id·source_session_id 생성, restart_sequence, 0.2초 실측 경계, topic-camera_id 거부, 순서 역전과 실제 프레임 처리는 이 시험 범위 밖이며 통합시험에서 확인한다.
 
 ## TBD
 
