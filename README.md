@@ -63,11 +63,6 @@ https://github.com/user-attachments/assets/c60197ef-d87e-4d44-82f0-a03078c54a2f
 4. 자기 도크로 돌아와 도킹합니다. 도크 접속이 2초 유지되고 충전이 확인되어야 성공이며, 실패하면 다시 시도해 **최대 3번**까지 도킹합니다.
 5. 도킹이 끝나면 관제가 권한을 회수하고 다음 로봇(`robot1` → `robot6` → `robot1` …)을 내보냅니다.
 
-<p align="center">
-  <img src="docs/images/patrol_route.gif" width="560" alt="웨이포인트 순찰과 도킹 복귀"><br>
-  <sub>순찰 시작 → 웨이포인트 이동과 제자리 회전 → 도킹 스테이션 복귀 (시연, 4배속)</sub>
-</p>
-
 ### 3.2 이상 감지 대응
 
 1. 로봇 카메라(OAK-D)에서 화재 · 누수 · 적치물 후보(신뢰도 0.70 이상)가 보이면 순찰을 멈춥니다.
@@ -248,7 +243,7 @@ Gate는 차량 bbox 중심이 **두 판정선을 넘는 순서**로 입차(`ENTE
 
 <p align="center">
   <img src="docs/images/gazebo/integration_robot1.gif" width="900" alt="Gazebo 통합 검증 — robot1 전체 순찰과 시스템 모니터 대시보드"><br>
-  <sub>왼쪽: Gazebo(실행 중 기록한 위치로 다시 렌더링, 주황 선은 지나온 경로) · 오른쪽: 시스템 모니터 대시보드(실행 중 캡처) · 아래: 진행 중인 장면 (약 90배속)</sub>
+  <sub>왼쪽: Gazebo(실행 중 기록한 위치로 다시 렌더링, 주황 선은 지나온 경로) · 오른쪽: 시스템 모니터 대시보드(실행 중 캡처) · 아래: 진행 중인 장면 (약 90배속, 도크 앞 도착까지)</sub>
 </p>
 
 | 장면 | 연결 | 결과 |
@@ -258,7 +253,7 @@ Gate는 차량 bbox 중심이 **두 판정선을 넘는 순서**로 입차(`ENTE
 | 비상정지 | 운영 서비스 → 관제 → `EStop` → AMR | WP3 도착 뒤 걸자 정지 · `BLOCKED`. 해제 뒤 재개 명령 전까지 Gazebo 실제 위치 그대로, 재개 명령 뒤 순찰 재개 |
 | 출차 중 → 출차 완료 | CCTV 이벤트 → `cam_master` → 관제 → AMR | WP5 도착 뒤 출차 중(`EXITING`) → 안전구역 이동 · 대기 → 출차 완료(`EXITED`) → 재개 |
 | 감지 → 저장 | AMR → 감지 노드 → `ReportDetection` → 시스템 모니터 | WP3 재방문 지점에서 정렬 → 누수 확정(평균 0.81) → `STORED`, 대시보드 이벤트 로그에 사건과 증거 사진 → 재개 |
-| 도킹 | AMR ↔ Create 3 | 도킹 실패 처리 규칙대로 동작: 3번 시도 → 도크 앞 대기 → `FAILED(DOCKING_FAILED)` → 관제가 robot1을 교대에서 제외. 같은 경로의 앞선 실행에서는 2번째 시도에 도킹 → `SUCCEEDED` → 관제가 다음 순찰 Goal 전송 |
+| 귀환 | 관제 → `Patrol` → AMR | 마지막 WP1 회전 뒤 robot1 도크 앞 (0, 0)으로 귀환 |
 
 시스템 모니터 DB에는 이 실행의 사건 1건 · 증거 사진 1장, CCTV 상태 이벤트 4건, 차량 입출차 기록, 순찰 방문 9건, 비상정지 이력이 저장됐습니다.
 
@@ -272,7 +267,7 @@ Gate는 차량 bbox 중심이 **두 판정선을 넘는 순서**로 입차(`ENTE
 4. `/robot6/patrol_action`에 Goal → robot6 `WAITING_FOR_TOKEN` → robot6에만 `DriveToken` 발급
 5. robot6이 자기 도크 (0, −2.076)에서 언도킹하고 같은 경로를 순찰한 뒤 자기 도크로 복귀
 
-관제 시험 [`test_docked_robot_hands_over_to_the_next_robot`](src/patrol_control/test/test_patrol_control_node.py) · [`test_docking_failure_excludes_robot_and_the_other_continues`](src/patrol_control/test/test_patrol_control_node.py)가 이 순서를 확인합니다. 두 로봇은 도크 좌표만 다르고 코드와 경로 설정은 같습니다([`config/site.yaml`](src/patrol_amr_safety/config/site.yaml)).
+두 로봇은 도크 좌표만 다르고 코드와 경로 설정은 같습니다([`config/site.yaml`](src/patrol_amr_safety/config/site.yaml)).
 
 ### 7.3 통합하면서 보완한 것
 
