@@ -128,7 +128,7 @@ PC 4대, TurtleBot 4 두 대, 웹캠 두 대로 구성했습니다. 아래는 �
 
 ### 통신 인터페이스
 
-공용 계약은 `patrol_interfaces 2.1.0`이고, 기준 문서는 [docs/interfaces.md](docs/interfaces.md)입니다. 최종 속도 후보 토픽(`cmd_vel_safety_in` · `cmd_vel_yaw`)과 운영 서비스(`/control/*`)는 설계도를 만든 뒤 추가해서 그림에는 없습니다.
+공용 계약은 `patrol_interfaces` 패키지이고, 기준 문서는 [docs/interfaces.md](docs/interfaces.md)입니다. 최종 속도 후보 토픽(`cmd_vel_safety_in` · `cmd_vel_yaw`)과 운영 서비스(`/control/*`)는 설계도를 만든 뒤 추가해서 그림에는 없습니다.
 
 | 방식 | 인터페이스 | 송신 → 수신 | 역할 |
 |---|---|---|---|
@@ -340,7 +340,7 @@ Gazebo의 TurtleBot 4를 AMR로 쓰고, 관제 · CCTV(`cam_master`) · 시스�
 
 - **공용 계약:** `patrol_interfaces` — 모든 PC가 같은 커밋의 인터페이스 패키지를 빌드하고 해시를 비교합니다.
 - **설계도:** 시스템 설계도(PC별 연결도 · 수행 흐름 · 인터페이스 상세)와 CCTV · AMR 감지 노드 설계도를 draw.io로 작성했습니다([docs/design](docs/design/)).
-- **변경 요청서(CR) 10건:** QoS 확정, 정지 서비스 · 재개 토픽, `patrol_interfaces v2` 전환 등 팀 간 계약 변경을 요청 · 승인 단위로 기록했습니다([docs/change_requests](docs/change_requests/README.md)).
+- **변경 요청서(CR) 10건:** QoS 확정, 정지 서비스 · 재개 토픽, Action 중심 계약 전환 등 팀 간 계약 변경을 요청 · 승인 단위로 기록했습니다([docs/change_requests](docs/change_requests/README.md)).
 - **결정 기록 4건:** 설계 기준선, 관제 인터페이스, AMR 명령 · 임무 계약, 감지 인터페이스([docs/decisions](docs/decisions/)).
 - **단계별 통과 기준:** 단위 개발(입출력 · 실패 · 대기 확인, 실행 로그) → 부분 통합(송수신 값 · 필드 · enum 대조, 양쪽 연결 로그) → 전체 통합(순찰 · 중단 · 재개 · 도킹 · 교대 결과, 영상과 이력).
 - **브랜치 · PR:** `main`과 짧은 작업 브랜치로 협업하고, 다른 PC와 맞물리는 변경은 PR로 확인받았습니다([branch-guide](docs/development/branch-guide.md) · [pull-request-guide](docs/development/pull-request-guide.md) · [version-control](docs/development/version-control.md)).
@@ -451,7 +451,7 @@ ros2 service call /control/resume std_srvs/srv/Trigger
 ```text
 AMR-patrol-system/
 ├── src/
-│   ├── patrol_interfaces/      공용 계약 2.1.0 (Patrol Action · 메시지 4종 · 서비스 2종)
+│   ├── patrol_interfaces/      공용 계약 (Patrol Action · 메시지 4종 · 서비스 2종)
 │   ├── patrol_amr_interfaces/  AMR 내부 계약 (DetectEvent Action)
 │   ├── patrol_amr_safety/      AMR 순찰 · 최종 속도 통제 · 감지 노드, 현장 좌표(config/site.yaml)
 │   ├── turtlebot4_navigation/  TurtleBot 4 Navigator · Nav2 · AMCL 설정
