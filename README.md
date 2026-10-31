@@ -54,8 +54,8 @@ https://github.com/user-attachments/assets/c60197ef-d87e-4d44-82f0-a03078c54a2f
 ## 3. 동작 시나리오
 
 <p align="center">
-  <a href="docs/images/design/system_design_02.png"><img src="docs/images/design/system_design_02.png" width="900" alt="시스템 설계도 02 — 관제 · AMR 수행 흐름"></a><br>
-  <sub>시스템 설계도 02 — 관제 판단, AMR 공통 흐름, CCTV, 시스템 모니터의 수행 흐름. 그림을 누르면 원본 크기로 열립니다.</sub>
+  <img src="docs/images/env_layout.jpg" width="560" alt="시연 환경 평면도"><br>
+  <sub>시연 환경 평면도 — 노란 선은 주차 구역, 분홍 선은 안전구역 표시입니다(발표 자료).</sub>
 </p>
 
 ### 3.1 교대 순찰
@@ -80,7 +80,7 @@ https://github.com/user-attachments/assets/c60197ef-d87e-4d44-82f0-a03078c54a2f
 
 <p align="center">
   <img src="docs/images/event_log.jpg" width="760" alt="누수 이벤트 상세"><br>
-  <sub>저장된 이벤트 — AMR이 감지한 누수(leak 0.86)의 증거 사진, 로봇, 위치, 처리 이력</sub>
+  <sub>저장된 이벤트 — AMR이 감지한 누수(leak 0.88)의 증거 사진, 로봇, 위치, 처리 이력</sub>
 </p>
 
 ### 3.3 차량 출입 대응
@@ -105,7 +105,26 @@ https://github.com/user-attachments/assets/c60197ef-d87e-4d44-82f0-a03078c54a2f
 
 ## 4. 시스템 구조
 
-PC 4대, TurtleBot 4 두 대, 웹캠 두 대로 구성했습니다. 아래는 팀이 작성한 시스템 설계도이고, 그림에 있는 노드 · 토픽 · 서비스 이름은 코드와 같습니다.
+### 4.1 장비와 PC 구성
+
+| 장비 | 수량 | 용도 |
+|---|---|---|
+| TurtleBot 4 (OAK-D) | 2 (`robot1` · `robot6`) | 순찰 · 회전 관측 · 이상 감지 · 도킹 |
+| 웹캠 | 2 (Gate · Center) | 입출차 · 주차 판정 |
+| RC 카 | 1 | 진입 · 주차 시연 차량 |
+
+| PC | 역할 | 실행하는 것 |
+|---|---|---|
+| PC 1 | AMR 1 (`robot1`) | `mission_supervisor` · `local_safety_supervisor` · 감지 노드, Nav2 · AMCL |
+| PC 2 | AMR 2 (`robot6`) | PC 1과 같은 구성 |
+| PC 3 | 관제 · 시스템 모니터 | 관제 노드, 시스템 모니터(저장 · 대시보드 · `ReportDetection` 서버) |
+| PC 4 | CCTV 비전 | `gate_cam` · `center_cam` · `cam_master` |
+
+모든 PC는 `ROS_DOMAIN_ID=6`, Fast DDS Discovery Server, 같은 `map` 좌표계를 씁니다. 지도 원점은 `robot1` 도크 앞이고, `robot6` 도크 앞은 WP1을 사이에 두고 대칭인 (0, −2.076)입니다. 두 곳 모두 WP1에서 1.06 m 떨어져 있습니다.
+
+### 4.2 시스템 설계도
+
+팀이 작성한 설계도입니다. 그림에 있는 노드 · 토픽 · 서비스 이름은 코드와 같고, 그림을 누르면 원본 크기로 열립니다.
 
 <p align="center">
   <a href="docs/images/design/system_design_01.png"><img src="docs/images/design/system_design_01.png" width="900" alt="시스템 설계도 01 — PC별 통합 연결도"></a><br>
@@ -113,20 +132,11 @@ PC 4대, TurtleBot 4 두 대, 웹캠 두 대로 구성했습니다. 아래는 �
 </p>
 
 <p align="center">
-  <img src="docs/images/env_layout.jpg" width="560" alt="시연 환경 평면도"><br>
-  <sub>시연 환경 — 분홍 선은 순찰 경로, 노란 선은 주차 구역이고, CCTV와 RC 카, 도크의 AMR 1 · AMR 2가 보입니다(발표 자료의 테스트베드 평면도).</sub>
+  <a href="docs/images/design/system_design_02.png"><img src="docs/images/design/system_design_02.png" width="900" alt="시스템 설계도 02 — 관제 · AMR 수행 흐름"></a><br>
+  <sub>시스템 설계도 02 — 관제 판단, AMR 공통 흐름, CCTV, 시스템 모니터의 수행 흐름.</sub>
 </p>
 
-| PC | 역할 | 실행하는 것 |
-|---|---|---|
-| PC 1 | AMR 1 (`robot1`) | `mission_supervisor` · `local_safety_supervisor` · 감지 노드, Nav2 · AMCL |
-| PC 2 | AMR 2 (`robot6`) | PC 1과 같은 구성 |
-| PC 3 | 관제 · 시스템 모니터 | 관제 노드, 시스템 모니터(저장 · 대시보드 · `ReportDetection` 서버) |
-| PC 4 | 비전 | `gate_cam` · `center_cam` · `cam_master` |
-
-모든 PC는 `ROS_DOMAIN_ID=6`, Fast DDS Discovery Server, 같은 `map` 좌표계를 씁니다. 지도 원점은 `robot1` 도크 앞이고, `robot6` 도크 앞은 WP1을 사이에 두고 대칭인 (0, −2.076)입니다. 두 곳 모두 WP1에서 1.06 m 떨어져 있습니다.
-
-### 통신 인터페이스
+### 4.3 통신 인터페이스
 
 공용 계약은 `patrol_interfaces` 패키지이고, 기준 문서는 [docs/interfaces.md](docs/interfaces.md)입니다. 최종 속도 후보 토픽(`cmd_vel_safety_in` · `cmd_vel_yaw`)과 운영 서비스(`/control/*`)는 설계도를 만든 뒤 추가해서 그림에는 없습니다.
 
@@ -154,19 +164,13 @@ PC 4대, TurtleBot 4 두 대, 웹캠 두 대로 구성했습니다. 아래는 �
 
 ## 5. 파트별 구현
 
-### 🚗 CCTV 비전 — 차량 상태 판정과 순찰 허용
+### 5.1 CCTV 비전 — 차량 상태 판정과 순찰 허용
 
 Gate는 차량 bbox 중심이 두 판정선을 어떤 순서로 넘는지 보고 입차(`ENTERING`)와 출차 완료(`EXITED`)를 판정합니다. Center는 주차 ROI에 5초 머물면 주차(`PARKED`), ROI를 벗어나면 출차 중(`EXITING`)으로 판정합니다. 이동 상태는 0.2초 연속 관측해야 확정하고, 이벤트 사이에는 2초 쿨다운을 둡니다([`gate_cam.py`](src/patrol_vision/patrol_vision/gate_cam.py) · [`center_cam.py`](src/patrol_vision/patrol_vision/center_cam.py)).
 
 `cam_master`는 카메라별 허용 상태인지, 신뢰도가 0 ~ 1 범위인지, 중복 · 역순 이벤트가 아닌지 검사해 모두 통과한 이벤트로만 `patrol_allowed`를 바꿉니다. 이벤트가 끊겨도 값을 임의로 바꾸지 않고, 마지막 값을 5 Hz로 계속 발행합니다([`cam_master.py`](src/patrol_vision/patrol_vision/cam_master.py)).
 
-### 🤖 AMR — 순찰 임무 · 주행 안전 · 이상 감지
-
-- **순찰 임무(`mission_supervisor`):** 관제가 보내는 `Patrol` Action을 받는 서버로, 권한 대기부터 언도킹, 순찰, 귀환과 도킹까지 맡습니다. 비상정지와 권한 끊김은 어느 단계에서든 바로 처리합니다. 안전구역 명령은 언도킹 · 도킹 중이면 그 동작을 마친 뒤 따르고, 감지 노드의 정지 요청은 순찰 경로를 달릴 때만 받습니다. 웨이포인트에 가지 못하면 한 번 더 시도한 뒤 건너뛰고, 두 곳을 연달아 건너뛰면 귀환합니다. 경로 · 도크 · 안전구역 좌표는 [`config/site.yaml`](src/patrol_amr_safety/config/site.yaml)에서 읽습니다([`mission_supervisor.py`](src/patrol_amr_safety/patrol_amr_safety/mission_supervisor.py)).
-- **주행 안전(`local_safety_supervisor`):** 바퀴로 가는 최종 속도는 이 노드 하나만 냅니다. Nav2 주행 후보와 정렬 회전 후보 가운데 최근 0.5초 안에 들어온 것이 정확히 하나이고, 주행 권한이 유효하며 비상정지 상태가 아닐 때만 그 속도를 내보냅니다. 두 후보가 겹치거나 권한 · 비상정지 조건이 맞지 않으면 0을 냅니다([`local_safety_supervisor.py`](src/patrol_amr_safety/patrol_amr_safety/local_safety_supervisor.py)).
-- **이상 감지(감지 노드):** YOLO11n으로 후보를 찾고, `DetectEvent` 요청을 받으면 정렬 회전과 1초 확인을 한 뒤 `ReportDetection`으로 저장합니다. 증거 사진은 1 MiB 안으로 맞춰 보내고, 저장에 실패한 보고는 사진과 내용을 로봇 PC에 따로 남깁니다([`vision_node_v2.py`](src/patrol_amr_safety/patrol_amr_safety/vision_node_v2.py) · [`event_check.py`](src/patrol_amr_safety/patrol_amr_safety/event_check.py)).
-
-### 🎛️ 관제
+### 5.2 관제
 
 관제는 두 로봇을 교대로 출발시키고 주행 권한(`DriveToken`), 실행 중 명령(`PatrolCommand`), 비상정지(`EStop`)를 맡습니다([`control_core.py`](src/patrol_control/patrol_control/control_core.py) · [`patrol_control_node.py`](src/patrol_control/patrol_control/patrol_control_node.py)).
 
@@ -175,7 +179,13 @@ Gate는 차량 bbox 중심이 두 판정선을 어떤 순서로 넘는지 보고
 - 관제를 다시 띄우면 저장해 둔 상태를 불러오고, AMR에 남은 임무가 있으면 취소한 뒤 취소가 끝날 때까지 새 순찰을 내보내지 않습니다.
 - 운영 명령은 터미널 ROS 서비스로 받습니다: `/control/start_patrol` · `cancel_patrol` · `clear_fire_hold` · `set_estop` · `resume`.
 
-### 🖥️ 시스템 모니터
+### 5.3 AMR — 순찰 임무 · 주행 안전 · 이상 감지
+
+- **순찰 임무(`mission_supervisor`):** 관제가 보내는 `Patrol` Action을 받는 서버로, 권한 대기부터 언도킹, 순찰, 귀환과 도킹까지 맡습니다. 비상정지와 권한 끊김은 어느 단계에서든 바로 처리합니다. 안전구역 명령은 언도킹 · 도킹 중이면 그 동작을 마친 뒤 따르고, 감지 노드의 정지 요청은 순찰 경로를 달릴 때만 받습니다. 웨이포인트에 가지 못하면 한 번 더 시도한 뒤 건너뛰고, 두 곳을 연달아 건너뛰면 귀환합니다. 경로 · 도크 · 안전구역 좌표는 [`config/site.yaml`](src/patrol_amr_safety/config/site.yaml)에서 읽습니다([`mission_supervisor.py`](src/patrol_amr_safety/patrol_amr_safety/mission_supervisor.py)).
+- **주행 안전(`local_safety_supervisor`):** 바퀴로 가는 최종 속도는 이 노드 하나만 냅니다. Nav2 주행 후보와 정렬 회전 후보 가운데 최근 0.5초 안에 들어온 것이 정확히 하나이고, 주행 권한이 유효하며 비상정지 상태가 아닐 때만 그 속도를 내보냅니다. 두 후보가 겹치거나 권한 · 비상정지 조건이 맞지 않으면 0을 냅니다([`local_safety_supervisor.py`](src/patrol_amr_safety/patrol_amr_safety/local_safety_supervisor.py)).
+- **이상 감지(감지 노드):** YOLO11n으로 후보를 찾고, `DetectEvent` 요청을 받으면 정렬 회전과 1초 확인을 한 뒤 `ReportDetection`으로 저장합니다. 증거 사진은 1 MiB 안으로 맞춰 보내고, 저장에 실패한 보고는 사진과 내용을 로봇 PC에 따로 남깁니다([`vision_node_v2.py`](src/patrol_amr_safety/patrol_amr_safety/vision_node_v2.py) · [`event_check.py`](src/patrol_amr_safety/patrol_amr_safety/event_check.py)).
+
+### 5.4 시스템 모니터
 
 로봇 상태, 차량 로그, 감지 이벤트와 증거 사진, 순찰 이력을 SQLite와 이미지 파일로 저장하고, 대시보드(지도, 4분할 영상, 최근 로그)와 이력 조회를 제공합니다. `ReportDetection` 서비스 서버도 맡습니다. 대시보드는 로봇을 조작하지 않는 읽기 전용 화면이고, 이벤트 처리 같은 관리자 기능은 로그인 · 세션 · CSRF와 서버 측 권한 검사로 보호합니다([`src/patrol_sysmon`](src/patrol_sysmon/README.md)).
 
@@ -186,16 +196,15 @@ Gate는 차량 bbox 중심이 두 판정선을 어떤 순서로 넘는지 보고
 
 ## 6. 결과
 
-### 시연 결과
+### 6.1 시연 결과
 
 | 장면 | 결과 | 근거 |
 |---|---|---|
 | 정상 순찰 · 도킹 | 웨이포인트 이동과 회전 관측 후 복귀 · 도킹 | 시연 영상 |
-| 차량 출입 대응 | 차량 진입 → 순찰 중단 → 안전구역 대기 → 주차 후 재개 | 시연 영상 · 관제 터미널 |
+| 차량 출입 대응 | Gate · Center 판정이 `patrol_allowed`를 거쳐 관제 명령으로 이어짐. 차량 진입 시 안전구역 대기, 주차 후 재개, 시스템 모니터 차량 로그에 기록 | 시연 영상 · 관제 터미널 |
 | 이상 감지와 기록 | 순찰 중 화재 · 누수 감지 → 정지 → 시스템 모니터에 로그와 사진 | 시연 영상 |
-| 차량 입출차 판정 | Gate · Center 판정이 `patrol_allowed`를 거쳐 관제 명령과 시스템 모니터 차량 로그에 반영됨 | 시연 영상 |
 
-### 비전 모델 성능
+### 6.2 비전 모델 성능
 
 | 모델 | 결과 | 근거 |
 |---|---|---|
@@ -214,26 +223,26 @@ Gate는 차량 bbox 중심이 두 판정선을 어떤 순서로 넘는지 보고
 
 </details>
 
-### 테스트
+### 6.3 테스트
 
 | 패키지 | 결과 | 다루는 내용 |
 |---|---|---|
+| CCTV(`patrol_vision`) | 4개 통과 | CameraState 계약 · 허용 상태, 코드 스타일 |
 | 관제(`patrol_control`) | 49개 통과 | 교대 · 권한 · 차량 명령 · 화재 보류 · 비상정지 · 배터리 · 재시작 복구, 코드 스타일 |
 | AMR(`patrol_amr_safety`) | 92개 통과 | 순찰 흐름 전체(모의 Nav2 · Create 3 · 가상 시계), 주행 안전 판정, 정렬 · 보고, 현장 좌표, 코드 스타일 |
-| CCTV(`patrol_vision`) | 4개 통과 | CameraState 계약 · 허용 상태, 코드 스타일 |
 | 시스템 모니터(`patrol_sysmon`) | 129개 통과 | 저장 · 중복 · 거부, 화면 · 권한, ROS 수신 |
 
 프로젝트를 마친 뒤에는 Gazebo에서 전체 시스템을 한 번에 연결해 다시 돌려 보았습니다([7절](#7-프로젝트-완료-이후--gazebo-통합-검증)).
 
 ## 7. 프로젝트 완료 이후 — Gazebo 통합 검증
 
-Gazebo의 TurtleBot 4를 AMR로 쓰고, 관제 · CCTV(`cam_master`) · 시스템 모니터와 AMR 노드를 이 저장소 코드 그대로 연결해 전체 시스템을 돌려 보았습니다.
+Gazebo의 TurtleBot 4를 AMR로 쓰고, CCTV(`cam_master`) · 관제 · 시스템 모니터와 AMR 노드를 이 저장소 코드 그대로 연결해 전체 시스템을 돌려 보았습니다. 시간값은 느린 시뮬레이션 속도에 맞춰 늘렸고, CCTV 차량 상태와 충전 상태는 같은 형식의 메시지로 넣었습니다(아래 "시뮬레이션 환경과 조정값").
 
 | 구성 | 실행한 것 |
 |---|---|
-| AMR | Gazebo TurtleBot 4(`robot1`, Create 3 도킹 포함) · AMCL · Nav2, `mission_supervisor` · `local_safety_supervisor` · 감지 노드 |
-| 관제 | 관제 노드, 운영 서비스(`/control/set_estop` · `/control/resume`) |
 | CCTV | `cam_master`(입력은 `CameraState` 이벤트) |
+| 관제 | 관제 노드, 운영 서비스(`/control/set_estop` · `/control/resume`) |
+| AMR | Gazebo TurtleBot 4(`robot1`, Create 3 도킹 포함) · AMCL · Nav2, `mission_supervisor` · `local_safety_supervisor` · 감지 노드 |
 | 시스템 모니터 | ROS 어댑터(저장 · `ReportDetection` 서버) · 대시보드 |
 | 지도 · 월드 | 시연장 지도 [`maps/final_project_map`](maps/)의 벽 · 장애물을 세운 월드(월드 좌표 = 지도 좌표)와 누수 표지 |
 
@@ -292,6 +301,8 @@ Gazebo의 TurtleBot 4를 AMR로 쓰고, 관제 · CCTV(`cam_master`) · 시스�
 
 ## 8. 트러블슈팅과 배운 점
 
+### 8.1 트러블슈팅
+
 | 문제 | 원인 | 어떻게 해결했나 | 결과 |
 |---|---|---|---|
 | AMR 통합이 늦어져 전체 일정이 밀림 | 순찰 명령과 상태를 여러 토픽으로 나눠 보내 팀 간 계약이 계속 바뀜 | 하나의 작업으로 볼 기능은 Action · Service로 묶고, 계속 갱신되는 정보(`DriveToken`, CCTV 상태)만 토픽으로 남겨 `patrol_interfaces`로 정리 | 팀 간 계약이 한 패키지로 고정되고, 이후 변경은 CR로만 진행 |
@@ -300,14 +311,14 @@ Gazebo의 TurtleBot 4를 AMR로 쓰고, 관제 · CCTV(`cam_master`) · 시스�
 | 대시보드가 길어지고 영상이 작아짐, 로그가 늘면 배치가 흔들림 | 정보를 세로로 나열한 화면 구조 | 상단 상태 요약 + 하단 지도 · 4분할 영상 · 최근 로그, 로그 영역 내부 스크롤, 화면 폭에 따라 3열 → 2열 → 1열 | 현재 상태와 현장을 한 화면에서 확인 |
 | 누구나 관리자 기능에 접근할 수 있음 | 대시보드에 인증이 없음 | 로그인 · 세션 · CSRF와 서버 측 권한 검사, 관리자 계정은 명령으로만 생성 | 관리자 기능 접근 제한 |
 
-**배운 점**
+### 8.2 배운 점
 
 - 상태 이름만 맞추고 발생 조건과 판단 주체는 정하지 않았더니, 같은 "정지"도 팀마다 다르게 구현했습니다. 이후로는 누가, 어떤 조건에서 상태를 바꾸는지까지 함께 정했습니다.
 - 진척은 실행 로그 · 영상 · 저장 이력으로 확인했고, 막힌 부분은 바로 공유해 업무를 다시 나누고 경험자가 돕는 방식으로 바꿨습니다.
 
 ## 9. 한계와 개선 방향
 
-**한계**
+### 9.1 한계
 
 - EStop은 ROS 메시지로 멈추는 소프트웨어 정지라 하드웨어 비상정지를 대신하지 못합니다. 관제와의 연결이 끊기면 주행 권한 만료(1초)나 EStop 수신 끊김(3초)으로 멈춥니다.
 - 운영 명령은 터미널의 ROS 서비스로만 보냅니다. 대시보드에서는 로봇을 조작할 수 없습니다.
@@ -316,7 +327,7 @@ Gazebo의 TurtleBot 4를 AMR로 쓰고, 관제 · CCTV(`cam_master`) · 시스�
 - 카메라 장애를 관제나 시스템 모니터에 알리지 못하고, 프레임을 3초 연속 못 읽으면 로그만 남깁니다. `cam_master`를 다시 띄우면 `patrol_allowed`가 true로 초기화됩니다.
 - 화재 · 누수는 모형 촛불과 색지로 재현했고, 차량은 RC 카 1대로 시연했습니다.
 
-**개선 방향**
+### 9.2 개선 방향
 
 - Gazebo 통합 시나리오(차량 대응, 비상정지, 교대)를 TurtleBot 4 두 대로 반복 실행
 - 하드웨어 비상정지와 소프트웨어 EStop의 연동, 카메라 장애의 관제 전달
@@ -333,7 +344,7 @@ Gazebo의 TurtleBot 4를 AMR로 쓰고, 관제 · CCTV(`cam_master`) · 시스�
 
 ## 11. 개발 방식
 
-8일 동안 AMR · 관제 · 비전 · 시스템 모니터 네 개발 단위가 `patrol_interfaces` 한 패키지를 공용 계약으로 함께 쓰며 개발했습니다. 계약을 바꿀 때는 변경 요청서(CR)를 쓰고, 결정은 결정 기록으로 남겼습니다.
+8일 동안 비전 · 관제 · AMR · 시스템 모니터 네 개발 단위가 `patrol_interfaces` 한 패키지를 공용 계약으로 함께 쓰며 개발했습니다. 계약을 바꿀 때는 변경 요청서(CR)를 쓰고, 결정은 결정 기록으로 남겼습니다.
 
 <details>
 <summary>계약 · 기록 · 브랜치 규칙</summary>
@@ -350,8 +361,10 @@ Gazebo의 TurtleBot 4를 AMR로 쓰고, 관제 · CCTV(`cam_master`) · 시스�
 
 ## 12. 실행 방법
 
+ROS 없이 시스템 모니터만 띄우거나, ROS 2 환경에서 빌드 · 테스트하거나, 장비 전체를 실행하는 방법입니다.
+
 <details>
-<summary>개발 환경 · 장비</summary>
+<summary>개발 환경</summary>
 
 | 항목 | 값 |
 |---|---|
@@ -360,13 +373,6 @@ Gazebo의 TurtleBot 4를 AMR로 쓰고, 관제 · CCTV(`cam_master`) · 시스�
 | 비전 | Ultralytics YOLO11n · OpenCV · OAK-D(AMR) · 웹캠(Gate · Center) |
 | 저장 · 화면 | Flask · SQLite · 이미지 파일 · 읽기 전용 대시보드(로그인 · 세션) |
 | 언어 · 도구 | Python 3.12 · colcon · pytest · flake8 · pep257 · Git/GitHub · draw.io |
-
-| 장비 | 수량 | 용도 |
-|---|---|---|
-| TurtleBot 4 (OAK-D) | 2 (`robot1` · `robot6`) | 순찰 · 회전 관측 · 이상 감지 · 도킹 |
-| 웹캠 | 2 (Gate · Center) | 입출차 · 주차 판정 |
-| RC 카 | 1 | 진입 · 주차 시연 차량 |
-| PC | 4 | AMR 1 · AMR 2 · 관제와 시스템 모니터 · 비전 |
 
 </details>
 
@@ -440,7 +446,7 @@ ros2 service call /control/resume std_srvs/srv/Trigger
 | [`docs/interfaces.md`](docs/interfaces.md) | Action · 메시지 · 서비스 · 토픽 계약, 운영 서비스 |
 | [`docs/scenarios.md`](docs/scenarios.md) | 상황별 시스템 동작 |
 | [`docs/architecture.md`](docs/architecture.md) · [`docs/integration.md`](docs/integration.md) | 시스템 구성 · Discovery · 통합 순서와 점검 항목 |
-| [`docs/amr.md`](docs/amr.md) · [`docs/vision.md`](docs/vision.md) · [`docs/control_server.md`](docs/control_server.md) · [`docs/monitoring_and_data.md`](docs/monitoring_and_data.md) | 개발 단위별 설계 |
+| [`docs/vision.md`](docs/vision.md) · [`docs/control_server.md`](docs/control_server.md) · [`docs/amr.md`](docs/amr.md) · [`docs/monitoring_and_data.md`](docs/monitoring_and_data.md) | 개발 단위별 설계 |
 | [`docs/change_requests/`](docs/change_requests/README.md) · [`docs/decisions/`](docs/decisions/) | 변경 요청서 10건 · 결정 기록 4건 |
 | [`src/patrol_interfaces`](src/patrol_interfaces/README.md) · [`src/patrol_control`](src/patrol_control/README.md) · [`src/patrol_amr_safety`](src/patrol_amr_safety/README.md) · [`src/patrol_sysmon`](src/patrol_sysmon/README.md) | 패키지별 실행 · 구성 · 테스트 |
 | [`data/`](data/) | 차량 · 이상 감지 모델 선정 보고서 |
