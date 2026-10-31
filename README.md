@@ -350,9 +350,9 @@ Gazebo의 TurtleBot 4를 AMR로 쓰고, CCTV(`cam_master`) · 관제 · 시스�
 <summary>계약 · 기록 · 브랜치 규칙</summary>
 
 - **공용 계약:** `patrol_interfaces` — 모든 PC가 같은 커밋의 인터페이스 패키지를 빌드하고 해시를 비교합니다.
-- **설계도:** 시스템 설계도(PC별 연결도 · 수행 흐름 · 인터페이스 상세)와 CCTV · AMR 감지 노드 설계도를 draw.io로 작성했습니다([docs/design](docs/design/)).
-- **변경 요청서(CR) 10건:** QoS 확정, 정지 서비스 · 재개 토픽, Action 중심 계약 전환 등 팀 간 계약 변경을 요청 · 승인 단위로 기록했습니다([docs/change_requests](docs/change_requests/README.md)).
-- **결정 기록 4건:** 설계 기준선, 관제 인터페이스, AMR 명령 · 임무 계약, 감지 인터페이스([docs/decisions](docs/decisions/)).
+- **설계도:** 시스템 설계도(PC별 연결도 · 수행 흐름 · 인터페이스 상세)와 CCTV · AMR 감지 노드 설계도를 draw.io로 작성했습니다.
+- **변경 요청서(CR) 10건:** QoS 확정, 정지 서비스 · 재개 토픽, Action 중심 계약 전환 등 팀 간 계약 변경을 요청 · 승인 단위로 기록했습니다.
+- **결정 기록 4건:** 설계 기준선, 관제 인터페이스, AMR 명령 · 임무 계약, 감지 인터페이스.
 - **단계별 통과 기준:** 단위 개발(입출력 · 실패 · 대기 확인, 실행 로그) → 부분 통합(송수신 값 · 필드 · enum 대조, 양쪽 연결 로그) → 전체 통합(순찰 · 중단 · 재개 · 도킹 · 교대 결과, 영상과 이력).
 - **브랜치 · PR:** `main`과 짧은 작업 브랜치로 협업하고, 다른 PC와 맞물리는 변경은 PR로 확인받았습니다([branch-guide](docs/development/branch-guide.md) · [pull-request-guide](docs/development/pull-request-guide.md) · [version-control](docs/development/version-control.md)).
 - **협업 도구:** Git/GitHub · Notion · Google Drive · draw.io
