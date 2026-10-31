@@ -115,8 +115,8 @@ PC 4대, TurtleBot 4 두 대, 웹캠 두 대로 구성합니다. 아래는 팀�
 </p>
 
 <p align="center">
-  <img src="docs/images/env_overview.jpg" width="640" alt="시연 환경"><br>
-  <sub>시연 환경 — 순찰 경로(분홍 선) · 주차 구역(노란 선) · 웹캠 삼각대 · RC 카 · 도킹 스테이션의 TurtleBot 4</sub>
+  <img src="docs/images/env_layout.jpg" width="560" alt="시연 환경 평면도"><br>
+  <sub>시연 환경 — 순찰 경로(분홍 선) · 주차 구역(노란 선) · CCTV · RC 카 · 도크의 AMR 1 · AMR 2 (발표 자료의 테스트베드 평면도)</sub>
 </p>
 
 | PC | 역할 | 실행하는 것 |
