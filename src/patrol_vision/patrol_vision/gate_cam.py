@@ -18,7 +18,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
 from ultralytics import YOLO
 
-# 개발 PC(hv-06)의 /home/hv-06/patrol 과 같은 위치: 사용자 홈 기준 ~/patrol
+# 모델과 재시작 순번 파일은 사용자 홈 기준 ~/patrol 아래에 둔다
 MODEL_PATH = Path.home() / 'patrol' / 'data' / 'car_data' / 'car_best_v2.pt'
 STATE_DIR = Path.home() / 'patrol' / 'state'
 
@@ -172,7 +172,7 @@ class GateCam(Node):
                 self._pending['confs'].append(conf)                   # 평균 계산용 conf 누적
                 elapsed = now - self._pending['start_time']            # 대기 시작 후 경과 시간
                 self._last_state_text = self._pending['state']         # 확정 대기 중에도 목표 상태 표시
-                # 0.2초(CONFIRM_SECONDS) 다 채웠으면 확정 발행
+                # 0.2초를 다 채웠으면 확정 발행
                 if elapsed >= 0.2:
                     # 구간 평균 conf
                     avg_conf = sum(self._pending['confs']) / len(self._pending['confs'])

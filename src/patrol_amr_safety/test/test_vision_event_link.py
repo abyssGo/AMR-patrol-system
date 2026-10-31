@@ -75,7 +75,7 @@ def vision(monkeypatch, tmp_path):
             self.submit_client, self.stop_client = Client(), Client()
             self._pending_futures = set()
             self._frames_received = self._frames_processed = 0
-            self._last_image_at = self._last_odom_at = None
+            self._last_image_at = self._last_pose_at = None
             self._last_detection = 'none'
             self._last_boxes_count = 0
             self.published, self.errors, self.recorded = [], [], []
@@ -291,7 +291,7 @@ def test_first_bbox_requests_stop_and_leaves_report_to_detect_event(vision, monk
     vision.model = SimpleNamespace(predict=lambda **_: [result])
     vision.select_detection = lambda _: ('fire', 0.9, (1, 1, 10, 10))
     vision.is_known_event = lambda *_: False
-    vision.class_name = vision.hold_start = vision.last_seen = None
+    vision.class_name = vision.last_seen = None
     vision.reported = False
     clock = SimpleNamespace(now=10.0)
     monkeypatch.setattr(module.time, 'monotonic', lambda: clock.now)

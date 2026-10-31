@@ -19,7 +19,7 @@ setup(
     zip_safe=True,
     maintainer='조정묵',
     maintainer_email='kj270477@gmail.com',
-    description='AMR local safety, status and command-identity nodes',
+    description='AMR mission, local safety and detection nodes',
     license='Apache-2.0',
     entry_points={
         'console_scripts': [

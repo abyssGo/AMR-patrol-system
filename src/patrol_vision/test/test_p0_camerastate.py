@@ -1,4 +1,4 @@
-"""patrol_interfaces v1.0과 CCTV CameraState 사용부의 정합성을 확인한다."""
+"""patrol_interfaces 2.1.0과 CCTV CameraState 사용부의 정합성을 확인한다."""
 
 from patrol_interfaces.msg import CameraState
 

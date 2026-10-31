@@ -70,8 +70,3 @@ class DriveTokenCheck:
     def valid(self, now: float) -> bool:
         """Return True while a non-empty token's lease is still running."""
         return bool(self.token) and self._expires_at is not None and now < self._expires_at
-
-    def revoke(self) -> None:
-        """Forget the current grant (used on shutdown or goal end)."""
-        self.token = ''
-        self._expires_at = None

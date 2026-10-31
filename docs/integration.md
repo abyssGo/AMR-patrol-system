@@ -112,7 +112,7 @@ bash scripts/check_tracked_paths.sh
 (cd src/patrol_control && python3 -m pytest -q test)
 (cd src/patrol_amr_safety && python3 -m pytest -q test)
 (cd src/patrol_vision && python3 -m pytest -q test)
-(cd src/patrol_sysmon && python3 -m pytest -q)
+(cd src/patrol_sysmon && python3 -m unittest discover -s tests)
 ```
 
 `verify_interface_v1.py`는 소스 트리·CMake 등록·필드·상수·manifest SHA-256을 확인한다.

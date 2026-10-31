@@ -2,7 +2,7 @@
 <package format="3">
   <name>patrol_control</name>
   <version>0.3.0</version>
-  <description>Control Server for patrol_interfaces 2.0</description>
+  <description>Control Server for patrol_interfaces 2.1</description>
 
   <maintainer email="control@example.com">Control Team</maintainer>
   <license>Apache-2.0</license>
@@ -16,7 +16,6 @@
   <exec_depend>action_msgs</exec_depend>
   <exec_depend>patrol_interfaces</exec_depend>
 
-  <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>

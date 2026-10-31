@@ -63,14 +63,14 @@ if __package__:
     from .dock_check import DOCK_ATTEMPT_TIMEOUT, DockCheck
     from .drive_token_check import DriveTokenCheck, TokenFrame, token_qos
     from .estop_check import ESTOP_TOPIC, EStopCheck, EStopFrame, estop_qos
-    from .move_to_safetyzone import Evacuation, SPIN, TEST_DEFAULTS
-    from .site_config import load_site
+    from .move_to_safetyzone import Evacuation, STOP_CHECK_DEFAULTS
+    from .site_config import load_site, SPIN
 else:
     from dock_check import DOCK_ATTEMPT_TIMEOUT, DockCheck
     from drive_token_check import DriveTokenCheck, TokenFrame, token_qos
     from estop_check import ESTOP_TOPIC, EStopCheck, EStopFrame, estop_qos
-    from move_to_safetyzone import Evacuation, SPIN, TEST_DEFAULTS
-    from site_config import load_site
+    from move_to_safetyzone import Evacuation, STOP_CHECK_DEFAULTS
+    from site_config import load_site, SPIN
 
 F = Patrol.Feedback
 R = Patrol.Result
@@ -135,7 +135,7 @@ class _EvacSettings:
         self.odom_topic = f'/{robot_id}/odom'
         self.base_frame = 'base_link'
         self.safe = safe_zones
-        for name, value in TEST_DEFAULTS.items():
+        for name, value in STOP_CHECK_DEFAULTS.items():
             setattr(self, name.replace('-', '_'), value)
 
 
@@ -405,7 +405,7 @@ class MissionSupervisor(Node):
     def _safe_stop(self, nav, evac):
         """End of goal: cancel whatever is still running, then confirm the stop."""
         if nav is not None:
-            self._cancel_detect(None, nav)
+            self._cancel_detect(nav)
             self._cancel_create_goal(nav)
         if evac is None:
             return
@@ -767,7 +767,7 @@ class MissionSupervisor(Node):
                 self._cancel_create_goal(nav)
                 self._blocked(gh, nav, evac)
 
-    def _stop_motion(self, nav, evac, gh=None):
+    def _stop_motion(self, nav, evac, gh):
         """
         Cancel the Nav2 task and confirm a real stop (wheels are already gated).
 
@@ -792,10 +792,6 @@ class MissionSupervisor(Node):
                     return
                 attempt += 1
                 nav.error(f'stop not confirmed (check {attempt}): {exc}')
-                if gh is None:
-                    if attempt >= STOP_CONFIRM_ATTEMPTS:
-                        raise
-                    continue
                 self._check_cancel(gh)
                 if attempt == STOP_CONFIRM_ATTEMPTS:
                     self.get_logger().error(
@@ -831,7 +827,7 @@ class MissionSupervisor(Node):
         Returns 'resume' (RESUME_PATROL) or 'evacuate' (MOVE_TO_SAFE_ZONE; the
         _evacuate flag stays set so the caller's normal safe-zone handling runs).
         """
-        self._cancel_detect(gh, nav)
+        self._cancel_detect(nav)
         self._cancel_create_goal(nav)
         self._stop_motion(nav, evac, gh)
         with self._lock:
@@ -984,7 +980,7 @@ class MissionSupervisor(Node):
             if not self._wait(gh, nav, result_future.done, DETECT_TIMEOUT,
                               F.DETECTION_PROCESSING, watch=watch):
                 self.get_logger().warning('DetectEvent timed out: cancelling before resuming')
-                self._cancel_detect(gh, nav)
+                self._cancel_detect(nav)
                 return
             with self._lock:
                 self._detect_goal = None
@@ -1008,15 +1004,15 @@ class MissionSupervisor(Node):
             self._safety_hold(gh, nav, evac)      # 감지 취소 포함
             self._publish(gh, F.RESUMING)
         except _TokenLost:
-            self._cancel_detect(gh, nav)
+            self._cancel_detect(nav)
             self._blocked(gh, nav, evac)
             self._publish(gh, F.RESUMING)
         except _Evacuate:
-            self._cancel_detect(gh, nav)
+            self._cancel_detect(nav)
             self._safe_zone(gh, nav, evac, None, None)
         finally:
             # 순찰 취소(PatrolAbort) 등으로 빠져나가도 감지 노드의 정렬 · 검증을 멈춘다.
-            self._cancel_detect(gh, nav)
+            self._cancel_detect(nav)
             self._cancel_when_accepted(send)
 
     @staticmethod
@@ -1032,7 +1028,7 @@ class MissionSupervisor(Node):
         if not send.done():
             send.add_done_callback(cancel)
 
-    def _cancel_detect(self, gh, nav):
+    def _cancel_detect(self, nav):
         """Cancel a running DetectEvent and wait until the node has stopped its yaw output."""
         with self._lock:
             pending, self._detect_goal = self._detect_goal, None

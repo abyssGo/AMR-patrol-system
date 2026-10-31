@@ -168,7 +168,7 @@ def _source_report(root: Path) -> dict[str, object]:
             _require(fragment in text, f"{relative} missing {fragment!r}")
 
     return {
-        "contract_version": "v2.0",
+        "contract_version": "v" + EXPECTED_VERSION,
         "package_version": EXPECTED_VERSION,
         "interface_count": sum(len(names) for names in EXPECTED_INTERFACES.values()),
         "hash_scope": "normalized ROS declarations; comments and blank lines excluded",

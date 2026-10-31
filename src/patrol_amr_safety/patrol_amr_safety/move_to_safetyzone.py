@@ -17,8 +17,7 @@ from rclpy.qos import qos_profile_sensor_data
 from rclpy.time import Time
 from tf2_ros import Buffer, TransformListener
 
-SPIN = 'spin'
-TEST_DEFAULTS = {  # 정지 확인 기준값
+STOP_CHECK_DEFAULTS = {  # 정지 확인 기준값
     'linear-epsilon': 0.01,   # m/s
     'angular-epsilon': 0.02,  # rad/s
     'stop-hold': 0.5,         # s

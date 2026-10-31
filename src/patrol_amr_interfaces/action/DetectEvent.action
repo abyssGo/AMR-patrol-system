@@ -1,5 +1,5 @@
 # AMR 내부 계약: mission_supervisor -> 감지 노드(vision_node_v2).
-# 공용 계약(patrol_interfaces 2.0.0)이 아니며 다른 PC는 사용하지 않는다.
+# 공용 계약(patrol_interfaces)이 아니며 다른 PC는 사용하지 않는다.
 # detection_id는 Patrol Feedback.event_id 및 ReportDetection.event_id와 같은 UUID v4다.
 
 # Goal

@@ -33,7 +33,7 @@ AMR PC(PC 1 `robot1`, PC 2 `robot6`)에서 실행하는 노드다. 관제(PC 3)�
 | `robot1` | (0, 0) | (0, 0), 남쪽 |
 | `robot6` | (0, −0.7) | (0, −0.7), 남쪽 |
 
-좌표(경로 · 도크 · 안전구역)는 [`config/site.yaml`](config/site.yaml)에서 읽습니다. 현장이 바뀌면 이 파일만 고치면 됩니다.
+좌표(경로 · 도크 · 안전구역)는 [`config/site.yaml`](config/site.yaml)에서 읽는다. 현장이 바뀌면 이 파일만 고치면 된다.
 
 ## 실행
 
@@ -67,7 +67,7 @@ cd src/patrol_amr_safety && python3 -m pytest -q test
 |---|---|
 | `test_mission_flow.py` | 가짜 Nav2 · Create 3 · 시계로 순찰 흐름 전체(EStop, Token 끊김, 안전구역, 감지, 경유지 재시도, 배터리, 도킹 재시도) |
 | `test_safety_rules.py` | EStop · 도킹 판정, 후보 선택 |
-| `test_drive_token_check.py` | 토큰 유효 · 만료 · 회수 · 다른 로봇 · 순서 역전 |
+| `test_drive_token_check.py` | Token 유효 · 만료 · 회수 · 다른 로봇 · 순서 역전 |
 | `test_alignment.py` | 화면 중심 오차와 회전 속도 |
 | `test_bearing.py` | bbox 중심의 방향각 |
 | `test_stop_confirm.py` | odometry 정지 확인 |

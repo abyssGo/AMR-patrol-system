@@ -34,9 +34,6 @@ setup(
             'gate_cam = patrol_vision.gate_cam:main',
             'center_cam = patrol_vision.center_cam:main',
             'cam_master = patrol_vision.cam_master:main',
-            'cam_common = patrol_vision.cam_common:main',
-            'vision_node = patrol_vision.vision_node:main',
-
         ],
     },
 )

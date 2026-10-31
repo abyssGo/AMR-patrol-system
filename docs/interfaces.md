@@ -140,7 +140,7 @@ string command_id
 string robot_id
 ```
 
-- 각 AMR은 코드에 등록된 기본 순찰 경로를 실행한다.
+- 각 AMR은 `config/site.yaml`에 등록된 순찰 경로를 실행한다.
 - `robot_id`가 노드 namespace와 다르거나 이미 실행 중인 순찰이 있으면 AMR이 Goal을 거절한다.
 - Goal이 수락되어도 AMR은 `WAITING_FOR_TOKEN`을 먼저 보고한다.
 

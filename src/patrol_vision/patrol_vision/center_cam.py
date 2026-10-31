@@ -17,7 +17,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
 from ultralytics import YOLO
 
-# 개발 PC(hv-06)의 /home/hv-06/patrol 과 같은 위치: 사용자 홈 기준 ~/patrol
+# 모델과 재시작 순번 파일은 사용자 홈 기준 ~/patrol 아래에 둔다
 MODEL_PATH = Path.home() / 'patrol' / 'data' / 'car_data' / 'car_best_v2.pt'
 STATE_DIR = Path.home() / 'patrol' / 'state'
 
@@ -193,7 +193,7 @@ class CenterCam(Node):
             # 체류 5초를 채웠고, 아직 이번 체류에서 PARKED를 발행한 적 없고, cooldown도
             # 지났으면 -> 지금이 바로 PARKED 확정 시점이다.
             if (not self._parked_confirmed                             # 아직 PARKED 미확정이고
-                    # 5.0초(PARKED_SECONDS) 이상 체류했고
+                    # 5.0초 이상 체류했고
                     and stay_time >= 5.0
                     and now_wall - self._last_event_time >= 2.0):      # 쿨다운(2.0초)도 지났으면
                 window = [c for t, c in self._confs_in_roi if now_mono - t <= 0.2]  # 마지막 0.2초 구간
@@ -231,7 +231,7 @@ class CenterCam(Node):
 
         elapsed = now_mono - self._exit_confirm_start                  # 확인 시작 후 경과 시간
         self._last_state_text = 'EXITING'
-        # 0.2초(CONFIRM_SECONDS) 이상 유지되면 확정
+        # 0.2초 이상 유지되면 확정
         if elapsed >= 0.2:
             if now_wall - self._last_event_time >= 2.0:                # 쿨다운(2.0초) 지났을 때만 실제 발행
                 avg_conf = sum(self._exit_confirm_confs) / len(self._exit_confirm_confs)

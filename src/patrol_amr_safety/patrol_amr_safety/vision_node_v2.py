@@ -88,7 +88,6 @@ EVENT_TYPE_NAMES = ('fire', 'leak', 'obstacle')
 # 로봇 위치만으로는 실제 사건 위치를 알 수 없어(뎁쓰 미사용), 로봇 위치·yaw +
 # bbox의 화면 내 위치(화각으로 각도 환산)로 "시선"을 구해 두 시선이 실제로
 # 교차하는지로 판정한다. 뎁쓰 카메라는 연산량·레이턴시 문제로 쓰지 않는다.
-# CR-비전_09-10_12-01 3절 참고.
 # ------------------------------------------------------------------
 CAMERA_HORIZONTAL_FOV_DEG = 64.0  # /robot1/oakd/rgb/preview/camera_info 기준 실측
 
@@ -185,7 +184,6 @@ class DetectingNode(Node):
         self.class_name = None
         self.bbox = None
         self.confidence = 0.0
-        self.hold_start = None
         self.last_seen = None
         self.latest_pose = None
         self.reported = False
@@ -193,7 +191,7 @@ class DetectingNode(Node):
         self._frames_received = 0
         self._frames_processed = 0
         self._last_image_at = None
-        self._last_odom_at = None
+        self._last_pose_at = None
         self._last_detection = 'none'
         self._last_boxes_count = 0
 
@@ -248,11 +246,11 @@ class DetectingNode(Node):
         now = time.monotonic()
         camera_age = ('never' if self._last_image_at is None
                       else f'{now - self._last_image_at:.1f}s')
-        odom_age = 'never' if self._last_odom_at is None else f'{now - self._last_odom_at:.1f}s'
+        pose_age = 'never' if self._last_pose_at is None else f'{now - self._last_pose_at:.1f}s'
         self.get_logger().info(
             f'VISION STATUS | camera_publishers={self.count_publishers(self.camera_topic)} '
             f'frames={self._frames_received} processed={self._frames_processed} '
-            f'camera_age={camera_age} odom_age={odom_age} '
+            f'camera_age={camera_age} pose_age={pose_age} '
             f'boxes={self._last_boxes_count} detection={self._last_detection} '
             f'stop_busy={self.patrol_events.busy} stopped={self.patrol_events.stopped} '
             f'reported={self.reported} pending_reports={len(self._pending_futures)} '
@@ -266,13 +264,13 @@ class DetectingNode(Node):
                                  math.hypot(w.x, w.y, w.z))
 
     def amcl_callback(self, msg):
-        if self._last_odom_at is None:
+        if self._last_pose_at is None:
             self.get_logger().info(f'POSE first message | topic={self.pose_topic} (map)')
-        self._last_odom_at = time.monotonic()
+        self._last_pose_at = time.monotonic()
         self.latest_pose = msg.pose.pose
 
     def get_current_pose_2d(self):
-        """(x, y, yaw) 또는 아직 odom을 못 받았으면 None."""
+        """(x, y, yaw) 또는 아직 AMCL 위치를 못 받았으면 None."""
         if self.latest_pose is None:
             return None
         x = self.latest_pose.position.x
@@ -339,7 +337,6 @@ class DetectingNode(Node):
             frame_width = frame.shape[1]
             with self._latest_lock:
                 self._latest = (now, detection, frame)
-                self._latest_frame_at = now
 
             if detection is None:
                 if self.last_seen is not None and now - self.last_seen > MAX_FRAME_GAP_SEC:
@@ -361,7 +358,6 @@ class DetectingNode(Node):
                             )
                             return
                         self.class_name = class_name
-                        self.hold_start = now
                         self.reported = False
                         if not self._goal_active:
                             # 정렬 대상: 정지를 요청한 후보의 종류
@@ -409,12 +405,11 @@ class DetectingNode(Node):
         self.class_name = None
         self.bbox = None
         self.confidence = 0.0
-        self.hold_start = None
         self.last_seen = None
         self.reported = False
 
     # ------------------------------------------------------------------
-    # 중복 식별 — 레이(위치+방향) 교차 기반. CR-비전_09-10_12-01 3절 참고.
+    # 중복 식별 — 레이(위치+방향) 교차 기반 (위 상수 설명 참고).
     # ------------------------------------------------------------------
     def is_known_event(self, class_name, bbox, frame_width):
         pose = self.get_current_pose_2d()

@@ -1,6 +1,6 @@
 # 지하주차장 시스템 모니터
 
-공용 ROS wire 계약은 `patrol_interfaces 1.0.0`이다. 통합시험 전 네 팀이 같은 Git commit을 로컬 빌드하고 저장소의 `scripts/verify_interface_v1.py --installed`가 출력하는 manifest SHA-256을 비교한다.
+공용 ROS wire 계약은 `patrol_interfaces 2.1.0`이다. 통합시험 전 네 팀이 같은 Git commit을 로컬 빌드하고 저장소의 `scripts/verify_interface_v1.py --installed`가 출력하는 manifest SHA-256을 비교한다.
 
 ## 20단계까지 완료 범위
 
@@ -39,7 +39,7 @@ cd <patrol-workspace>/src/patrol_sysmon
 
 ## 코드리뷰에서 볼 폴더
 
-제품 코드와 시험용 코드를 폴더로 나눴다. 리뷰 대상은 위 두 줄이다.
+제품 코드와 시험용 코드를 폴더로 나눴다. 리뷰 대상은 아래 표의 처음 두 줄이다.
 
 | 폴더 | 내용 | 리뷰 대상 |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ cd <patrol-workspace>/src/patrol_sysmon
 - `app/ros_adapter.py`: ROS adapter 공개 진입점(이름 모음)
 - `app/ros/registry.py`: 구독 토픽 등록표와 계약 enum 대응표
 - `app/ros/payloads.py`: ROS 메시지를 서비스 입력으로 바꾸는 변환 함수
-- `app/ros/qos.py`: interfaces.md 5절 QoS 계약
+- `app/ros/qos.py`: interfaces.md QoS 계약(6·9절)
 - `app/ros/node.py`: 구독 노드 생성·callback·ReportDetection 서비스 서버·실행
 - `testkit/ros_topic_test.py`: 격리 도메인의 가상 publisher와 실제 subscriber·임시 저장소 종단시험
 - `testkit/ros_process_test.py`: adapter·가상 publisher 별도 프로세스 DDS 종단시험
@@ -161,7 +161,7 @@ python3 ros_adapter.py
 
 현재 가상환경에는 `PyYAML`·`numpy`를 설치했고 PC 3 ROS workspace에는 `patrol_interfaces` v1.0을 빌드했다. workspace source 후 `--check`는 `rclpy`, `patrol_interfaces`, `nav_msgs`, `sensor_msgs`를 모두 찾아 종료 코드 0을 반환한다. 실제 AMR·비전 publisher 수신은 아직 실행하지 않았다.
 
-`patrol_interfaces 2.1.0` 기준 활성 입력은 `/map` 1개, 압축 영상 4개, global costmap 2개, CameraState 2개, patrol_allowed 1개, EStop 1개(관제가 대상마다 1초 주기로 발행), 로봇별 Patrol Action 피드백 `/{robot}/patrol_action/_action/feedback`·목표 상태 `/{robot}/patrol_action/_action/status`·`/{robot}/battery_state` 각 2개로 총 17개 토픽이다. v2에는 RobotStatus·PatrolVisit·PatrolReport·KeepoutStatus가 없어서, 관제가 호출하는 Patrol Action의 피드백·상태 토픽을 옆에서 구독해 임무 상태·위치·관측점 방문(`WAYPOINT_REACHED`)·순찰 결과를 만들고 배터리는 TurtleBot4 `battery_state`로 받는다(`app/ros/patrol_action.py`). 순찰 결과의 실패·취소 사유와 계획 방문 수는 v2 상태 토픽에 없어 비워 두거나 저장된 방문 수로 채운다. 확정 사건과 증거 사진은 `/system_monitor/report_detection` 서비스(ReportDetection)로 받고, 응답(STORED·DUPLICATE·REJECTED)이 곧 저장 결과다. `ingestion_ack` 회신은 하지 않는다.
+`patrol_interfaces 2.1.0` 기준 활성 입력은 `/map` 1개, 압축 영상 4개, global costmap 2개, CameraState 2개, patrol_allowed 1개, EStop 1개(관제가 대상마다 1초 주기로 발행), 로봇별 Patrol Action 피드백 `/{robot}/patrol_action/_action/feedback`·목표 상태 `/{robot}/patrol_action/_action/status`·`/{robot}/battery_state` 각 2개로 총 17개 토픽이다. v2에는 RobotStatus·PatrolVisit·PatrolReport·KeepoutStatus가 없어서, 관제가 호출하는 Patrol Action의 피드백·상태 토픽을 옆에서 구독해 임무 상태·위치·관측점 방문(`WAYPOINT_REACHED`)·순찰 결과를 만들고 배터리는 TurtleBot 4 `battery_state`로 받는다(`app/ros/patrol_action.py`). 순찰 결과의 실패·취소 사유와 계획 방문 수는 v2 상태 토픽에 없어 비워 두거나 저장된 방문 수로 채운다. 확정 사건과 증거 사진은 `/system_monitor/report_detection` 서비스(ReportDetection)로 받고, 응답(STORED·DUPLICATE·REJECTED)이 곧 저장 결과다. `ingestion_ack` 회신은 하지 않는다.
 
 2026-09-08 v1.0 통일 검증에서는 전체 120개 시험과 86개 subtest가 통과했다. 별도 프로세스 DDS 시험 중 첫 `KeepoutStatus`가 첫 `RobotStatus`보다 먼저 도착하는 경우도 저장하도록 소비부를 보완했으며, 격리 DDS 시험 6개가 모두 통과했다. 실제 상대 PC publisher 시험은 여전히 **NOT_RUN**이다.
 
@@ -376,7 +376,7 @@ cd <patrol-workspace>/src/patrol_sysmon
 
 4단계는 화면 구조만 구현하므로 기존 DB에 이벤트가 있어도 아직 조회하지 않는다. 샘플 이벤트·배터리·정상 연결 상태를 자동 생성하지 않으며, 이벤트 발생·이미지 확대·검색은 각각 후속 단계에서 연결한다. 운영 명령 요청은 시스템 모니터 범위에서 제외한다.
 
-검증: 2026-09-06 기존 인증·DB 테스트 16개 통과. 임시 DB를 사용한 실제 브라우저에서 로그인→대시보드, 메뉴 이동, 로그아웃, 관리자 화면 연결, 조회자 관리 접근 차단을 확인했다. 1440×1050과 390×844 화면을 확인했으며 페이지 전체 가로 넘침은 없었다. 테스트용 5002번 서버와 계정은 임시 사본에서만 사용했고 실제 프로젝트 DB에는 복사하지 않는다.
+검증: 2026-09-06 기존 인증·DB 테스트 16개 통과. 임시 DB를 사용한 실제 브라우저에서 로그인→대시보드, 메뉴 이동, 로그아웃, 관리자 화면 연결, 조회자 관리 접근 차단을 확인했다. 1440×1050과 390×844 화면을 확인했으며 페이지 전체 가로 넘침은 없었다. 테스트용 5002번 서버와 계정은 임시 사본에서만 사용했고 실제 프로젝트 DB에는 복사하지 않았다.
 
 ## 5단계 로봇 상태 수신
 
@@ -498,7 +498,7 @@ export SYSMON_ROBOT_API_KEY='<시연용 토큰>'
 - `GET /api/cameras`: 로그인 사용자의 네 카메라 상태·최신 이미지 URL 조회.
 - `GET /api/cameras/<camera_id>/frame`: 로그인 사용자에게 최신 PNG/JPEG 제공.
 - 카메라 ID: `amr1`, `amr2`, `webcam1`, `webcam2`.
-- 프레임 최대 크기: 기본 2MB. 같은 프레임의 정상 재전송은 200, 같은 ID의 다른 내용이나 오래된 프레임은 409.
+- 프레임 최대 크기: 기본 2 MB. 같은 프레임의 정상 재전송은 200, 같은 ID의 다른 내용이나 오래된 프레임은 409.
 - 화면은 1초마다 상태를 확인하고 내용 해시가 달라졌을 때만 이미지를 교체한다.
 - 마지막 서버 수신 후 기본 5초가 지나면 최근 이미지를 유지한 채 `연결 끊김`으로 표시한다.
 
@@ -552,4 +552,4 @@ export SYSMON_ROBOT_API_KEY='<시연용 토큰>'
 
 이벤트 로그와 차량 입출차 로그의 **표시 초기화**는 원본 행을 삭제하지 않는다. `dashboard_clear_state`에 현재 사용자의 기준 시각을 저장하고 그 이후 수신된 항목만 최근 목록에 표시한다. 다른 사용자의 화면에는 영향을 주지 않으며 이전 기록은 통합 이력에서 계속 검색할 수 있다. 차량번호·인식률·차량 이미지는 받거나 저장하지 않는다.
 
-11단계 검증: 2026-09-06 임시 DB에서 전체 테스트 **63개 통과**. 누수·장애물 공통 처리, 차량 입차·출차, 인증·입력 검증·중복·충돌·대시보드·통합 이력과 사용자별 표시 초기화를 확인했다. 실제 ROS2 토픽과 차량 인식 모듈은 아직 연결하지 않았다.
+11단계 검증: 2026-09-06 임시 DB에서 전체 테스트 **63개 통과**. 누수·장애물 공통 처리, 차량 입차·출차, 인증·입력 검증·중복·충돌·대시보드·통합 이력과 사용자별 표시 초기화를 확인했다. 실제 ROS 2 토픽과 차량 인식 모듈은 아직 연결하지 않았다.

@@ -10,7 +10,7 @@
 
 ## 프로젝트 맞춤 선정 기준
 
-Gate/Center 카메라는 차량 검출 결과를 ByteTrack에 전달하고 bbox 중심점으로 선 통과와 ROI 진입을 판정한다. 따라서 차량을 놓치면 추적과 상태 이벤트가 끊길 수 있으므로 Recall을 최우선으로 평가한다. Recall 최고값과 0.01 이내 후보에서는 다양한 IoU 구간의 위치 정확도를 나타내는 mAP50-95, 오검출을 줄이는 Precision, 실시간 처리를 위한 추론시간, 모델크기 순으로 비교한다.
+Gate/Center 카메라는 confidence가 가장 높은 차량 bbox 1개의 중심점으로 선 통과와 ROI 진입을 판정한다. 따라서 차량을 놓치면 추적과 상태 이벤트가 끊길 수 있으므로 Recall을 최우선으로 평가한다. Recall 최고값과 0.01 이내 후보에서는 다양한 IoU 구간의 위치 정확도를 나타내는 mAP50-95, 오검출을 줄이는 Precision, 실시간 처리를 위한 추론시간, 모델크기 순으로 비교한다.
 
 ## Validation 비교
 
@@ -23,8 +23,8 @@ Gate/Center 카메라는 차량 검출 결과를 ByteTrack에 전달하고 bbox 
 ## 선정 결과
 
 - 최종 모델: **yolo11n**
-- 선정 기준: 차량 누락 방지를 위해 Recall을 최우선으로 평가하고, 최고 Recall과 0.01 이내 후보 중 mAP50-95, Precision, 추론시간, 모델크기 순으로 비교하여 yolo11n을 선정함. 선정 모델 Validation 결과: Recall=0.9940, mAP50-95=0.7089, Precision=0.9996, 추론시간=2.928 ms.
-- Test 데이터는 모델 선정 후 최종 검증에만 사용함.
+- 선정 기준: 차량 누락 방지를 위해 Recall을 최우선으로 평가하고, 최고 Recall과 0.01 이내 후보 중 mAP50-95, Precision, 추론시간, 모델크기 순으로 비교하여 yolo11n을 선정했다. 선정 모델 Validation 결과: Recall=0.9940, mAP50-95=0.7089, Precision=0.9996, 추론시간=2.928 ms.
+- Test 데이터는 모델 선정 후 최종 검증에만 사용했다.
 
 ## 최종 Test 결과
 
@@ -36,5 +36,5 @@ Gate/Center 카메라는 차량 검출 결과를 ByteTrack에 전달하고 bbox 
 
 ## 선정 이유
 
-차량 누락 방지를 위해 Recall을 최우선으로 평가하고, 최고 Recall과 0.01 이내 후보 중 mAP50-95, Precision, 추론시간, 모델크기 순으로 비교하여 yolo11n을 선정함. 선정 모델 Validation 결과: Recall=0.9940, mAP50-95=0.7089, Precision=0.9996, 추론시간=2.928 ms.
+차량 누락 방지를 위해 Recall을 최우선으로 평가하고, 최고 Recall과 0.01 이내 후보 중 mAP50-95, Precision, 추론시간, 모델크기 순으로 비교하여 yolo11n을 선정했다. 선정 모델 Validation 결과: Recall=0.9940, mAP50-95=0.7089, Precision=0.9996, 추론시간=2.928 ms.
 Validation 세트로 후보를 비교·선정하고, Test 세트는 선정된 모델의 최종 일반화 성능 확인에만 사용했다.

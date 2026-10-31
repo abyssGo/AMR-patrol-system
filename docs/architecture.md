@@ -14,7 +14,7 @@
 
 PC 1·2의 역할과 TB4 내부 컴퓨터의 실제 프로세스 배치를 동일한 것으로 단정하지 않는다. 장치 드라이버·Create 3·republisher 등의 실제 배치는 TBD-ARCH-001에서 관리한다. 위 표는 기능 책임과 통합 실행 위치를 나타내며 개발자의 작업 PC를 지정하지 않는다.
 
-관제와 시스템 모니터는 별도 개발 단위이며 각각 [control_server.md](control_server.md)와 [monitoring_and_data.md](monitoring_and_data.md)를 담당한다. 실제 시스템 실행 시 시스템 모니터는 관제 코드와 함께 관제 PC(PC 3)에서 실행한다. AMR은 PC 1·2, 비전은 PC 4의 역할을 유지한다. 시스템 모니터의 실행 위치를 PC 3으로 지정해도 두 팀의 개발 책임은 분리한다.
+관제와 시스템 모니터는 별도 개발 단위이며 각각 [control_server.md](control_server.md)와 [monitoring_and_data.md](monitoring_and_data.md)에서 다룬다. 실제 시스템 실행 시 시스템 모니터는 관제 코드와 함께 관제 PC(PC 3)에서 실행한다. AMR은 PC 1·2, 비전은 PC 4의 역할을 유지한다. 시스템 모니터의 실행 위치를 PC 3으로 지정해도 두 팀의 개발 책임은 분리한다.
 
 ## 2. 식별 체계
 
@@ -63,7 +63,7 @@ AMR 로컬 감지는 OAK-D 입력에서 후보·정렬·확정을 처리하며 P
 | robot1 Onboard | ID 1, UDP 11811 | Create 3를 포함한 로봇 내부 Discovery |
 | robot6 Onboard | ID 6, UDP 11811 | Create 3를 포함한 로봇 내부 Discovery |
 
-PC 1·2·4의 ROS 참여자는 PC 3 서버의 Client다. PC 3는 서버 프로세스를 실행하면서 자체 관제·모니터 ROS 참여자도 Client로 동작한다. 각 TB4의 Offboard 설정은 PC 3의 ID 0 서버를 가리키고, Enabled는 True다.
+PC 1·2·4의 ROS 참여자는 PC 3 서버의 Client다. PC 3에서는 서버 프로세스를 실행하고, 자체 관제·모니터 ROS 참여자도 Client로 동작한다. 각 TB4의 Offboard 설정은 PC 3의 ID 0 서버를 가리키고, Enabled는 True다.
 
 Onboard는 Create 3 내부 통신을 위한 Discovery 역할이며 안전 제어 알고리즘 자체가 아니다. Create 3가 Offboard에 직접 참여하거나 서버끼리 직접 연결된다고 추정하지 않는다. 생성된 실제 참여자별 설정 확인은 TBD-ARCH-001이다. 공식 TB4 설정 이력도 Create 3 로컬 서버와 로봇 측 Offboard 연결을 구분한다. [TB4 설정 이력](https://docs.ros.org/en/humble/p/turtlebot4_setup/__CHANGELOG.html)
 
