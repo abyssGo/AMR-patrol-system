@@ -4,7 +4,10 @@
   <img src="https://img.shields.io/badge/ROS%202-Jazzy-22314E?style=flat-square&logo=ros&logoColor=white" alt="ROS 2 Jazzy">
   <img src="https://img.shields.io/badge/TurtleBot%204-x2-1F6FEB?style=flat-square" alt="TurtleBot 4 x2">
   <img src="https://img.shields.io/badge/Nav2-AMCL-0A7BBB?style=flat-square" alt="Nav2 AMCL">
+  <img src="https://img.shields.io/badge/OAK--D-%EB%A1%9C%EB%B4%87%20%EC%B9%B4%EB%A9%94%EB%9D%BC-1F6FEB?style=flat-square" alt="OAK-D">
   <img src="https://img.shields.io/badge/YOLO11n-%EC%B0%A8%EB%9F%89%20%C2%B7%20%EC%9D%B4%EC%83%81%20%EA%B0%90%EC%A7%80-00FFFF?style=flat-square" alt="YOLO11n">
+  <img src="https://img.shields.io/badge/OpenCV-CCTV%20%ED%8C%90%EC%A0%95-5C3EE8?style=flat-square&logo=opencv&logoColor=white" alt="OpenCV">
+  <img src="https://img.shields.io/badge/Gazebo-Harmonic-F58113?style=flat-square" alt="Gazebo Harmonic">
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.12">
   <img src="https://img.shields.io/badge/Flask-SQLite-000000?style=flat-square&logo=flask&logoColor=white" alt="Flask SQLite">
   <img src="https://img.shields.io/badge/Fast%20DDS-Discovery%20Server-1F6FEB?style=flat-square" alt="Fast DDS Discovery Server">
