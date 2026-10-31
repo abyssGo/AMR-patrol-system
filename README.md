@@ -113,11 +113,6 @@ PC 4대, TurtleBot 4 두 대, 웹캠 두 대로 구성했습니다. 아래는 �
 </p>
 
 <p align="center">
-  <a href="https://viewer.diagrams.net/?lightbox=1&nav=1#Uhttps%3A%2F%2Fraw.githubusercontent.com%2FabyssGo%2FAMR-patrol-system%2Fmain%2Fdocs%2Fdesign%2Fsystem_design.drawio"><img src="https://img.shields.io/badge/draw.io-%EC%8B%9C%EC%8A%A4%ED%85%9C%20%EC%84%A4%EA%B3%84%EB%8F%84%20%EC%9B%90%EB%B3%B8%20%EB%B3%B4%EA%B8%B0-F08705?style=for-the-badge&logo=diagramsdotnet&logoColor=white" alt="draw.io로 설계도 원본 보기"></a><br>
-  <sub>원본(01 연결도 · 02 수행 흐름 · 03 인터페이스 상세)을 브라우저에서 확대해 볼 수 있습니다 — <a href="docs/design/system_design.drawio">docs/design/system_design.drawio</a></sub>
-</p>
-
-<p align="center">
   <img src="docs/images/env_layout.jpg" width="560" alt="시연 환경 평면도"><br>
   <sub>시연 환경 — 분홍 선은 순찰 경로, 노란 선은 주차 구역이고, CCTV와 RC 카, 도크의 AMR 1 · AMR 2가 보입니다(발표 자료의 테스트베드 평면도).</sub>
 </p>
