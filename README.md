@@ -165,7 +165,7 @@ Gate는 차량 bbox 중심이 두 판정선을 어떤 순서로 넘는지 보고
 ### 🤖 AMR — 순찰 임무 · 주행 안전 · 이상 감지
 
 - **순찰 임무(`mission_supervisor`):** 관제가 보내는 `Patrol` Action을 받는 서버로, 권한 대기부터 언도킹, 순찰, 귀환과 도킹까지 맡습니다. 비상정지와 권한 끊김은 어느 단계에서든 바로 처리합니다. 안전구역 명령은 언도킹 · 도킹 중이면 그 동작을 마친 뒤 따르고, 감지 노드의 정지 요청은 순찰 경로를 달릴 때만 받습니다. 웨이포인트에 가지 못하면 한 번 더 시도한 뒤 건너뛰고, 두 곳을 연달아 건너뛰면 귀환합니다. 경로 · 도크 · 안전구역 좌표는 [`config/site.yaml`](src/patrol_amr_safety/config/site.yaml)에서 읽습니다([`mission_supervisor.py`](src/patrol_amr_safety/patrol_amr_safety/mission_supervisor.py)).
-- **주행 안전(`local_safety_supervisor`):** 바퀴로 가는 최종 속도는 이 노드 하나만 냅니다. Nav2 주행 후보와 정렬 회전 후보 가운데 최근 0.5초 안에 들어온 것이 정확히 하나이고, 주행 권한이 유효하며 비상정지 상태가 아닐 때만 그 속도를 내보냅니다. 그 밖에는 0을 냅니다([`local_safety_supervisor.py`](src/patrol_amr_safety/patrol_amr_safety/local_safety_supervisor.py)).
+- **주행 안전(`local_safety_supervisor`):** 바퀴로 가는 최종 속도는 이 노드 하나만 냅니다. Nav2 주행 후보와 정렬 회전 후보 가운데 최근 0.5초 안에 들어온 것이 정확히 하나이고, 주행 권한이 유효하며 비상정지 상태가 아닐 때만 그 속도를 내보냅니다. 두 후보가 겹치거나 권한 · 비상정지 조건이 맞지 않으면 0을 냅니다([`local_safety_supervisor.py`](src/patrol_amr_safety/patrol_amr_safety/local_safety_supervisor.py)).
 - **이상 감지(감지 노드):** YOLO11n으로 후보를 찾고, `DetectEvent` 요청을 받으면 정렬 회전과 1초 확인을 한 뒤 `ReportDetection`으로 저장합니다. 증거 사진은 1 MiB 안으로 맞춰 보내고, 저장에 실패한 보고는 사진과 내용을 로봇 PC에 따로 남깁니다([`vision_node_v2.py`](src/patrol_amr_safety/patrol_amr_safety/vision_node_v2.py) · [`event_check.py`](src/patrol_amr_safety/patrol_amr_safety/event_check.py)).
 
 ### 🎛️ 관제
@@ -221,7 +221,7 @@ Gate는 차량 bbox 중심이 두 판정선을 어떤 순서로 넘는지 보고
 | 패키지 | 결과 | 다루는 내용 |
 |---|---|---|
 | 관제(`patrol_control`) | 49개 통과 | 교대 · 권한 · 차량 명령 · 화재 보류 · 비상정지 · 배터리 · 재시작 복구, 코드 스타일 |
-| AMR(`patrol_amr_safety`) | 91개 통과 | 순찰 흐름 전체(모의 Nav2 · Create 3 · 가상 시계), 주행 안전 판정, 정렬 · 보고, 현장 좌표, 코드 스타일 |
+| AMR(`patrol_amr_safety`) | 92개 통과 | 순찰 흐름 전체(모의 Nav2 · Create 3 · 가상 시계), 주행 안전 판정, 정렬 · 보고, 현장 좌표, 코드 스타일 |
 | CCTV(`patrol_vision`) | 4개 통과 | CameraState 계약 · 허용 상태, 코드 스타일 |
 | 시스템 모니터(`patrol_sysmon`) | 129개 통과 | 저장 · 중복 · 거부, 화면 · 권한, ROS 수신 |
 

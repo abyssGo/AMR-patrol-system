@@ -1,6 +1,6 @@
 """v2 Patrol Action 피드백·상태와 battery_state를 기존 저장 서비스 입력으로 옮기는 추적기.
 
-patrol_interfaces 2.0에는 RobotStatus·PatrolVisit·PatrolReport가 없다. 관제가 호출하는
+patrol_interfaces 2.1.0에는 RobotStatus·PatrolVisit·PatrolReport가 없다. 관제가 호출하는
 Patrol Action의 피드백·상태 토픽과 로봇 battery_state를 합쳐 로봇 상태 한 행, 관측점 방문,
 순찰 결과를 만든다. ROS 없이 시험할 수 있게 dict만 주고받는다.
 

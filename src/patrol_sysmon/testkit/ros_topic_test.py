@@ -8,7 +8,6 @@ import base64
 import math
 import os
 import secrets
-import sqlite3
 import tempfile
 import time
 import uuid

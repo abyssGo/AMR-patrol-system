@@ -19,7 +19,7 @@ class SubscriptionSpec:
 
 
 SUBSCRIPTIONS = (
-    # [v2 로봇 상태] patrol_interfaces 2.0에는 RobotStatus·PatrolVisit·PatrolReport가 없다.
+    # [v2 로봇 상태] patrol_interfaces 2.1.0에는 RobotStatus·PatrolVisit·PatrolReport가 없다.
     # 관제가 호출하는 Patrol Action의 피드백·상태 토픽을 옆에서 구독해 임무 상태·위치·방문·결과를 얻고,
     # 배터리는 TurtleBot4 기본 battery_state로 받는다. Action 흐름에는 끼어들지 않는다.
     SubscriptionSpec(
@@ -89,7 +89,7 @@ SUBSCRIPTIONS = (
         "patrol_allowed", "/vision/cctv/patrol_allowed",
         "std_msgs/msg/Bool", "patrol_allowed", True,
     ),
-    # [E-stop 예약] v2에서 /control/estop은 타입만 예약돼 발행자가 없다. 발행되면 바로 표시한다.
+    # [E-stop] 관제가 /control/estop을 발행한다. 받으면 바로 표시한다.
     SubscriptionSpec(
         "estop", "/control/estop",
         "patrol_interfaces/msg/EStop", "estop", True,
@@ -99,7 +99,7 @@ SUBSCRIPTIONS = (
 ROBOT_DISPLAY_IDS = {"robot1": "AMR1", "robot6": "AMR2"}
 # [ReportDetection] 확정 사건·증거 사진을 서비스 한 번으로 받는다. System monitor가 서버다.
 REPORT_DETECTION_SERVICE = "/system_monitor/report_detection"
-# v1.1 기준선의 FIRE=1·LEAK=2·OBSTACLE=3 과 같은 값. 0(UNKNOWN)은 "안 채운 값"으로 보고 거부한다.
+# ReportDetection.srv의 FIRE=1·LEAK=2·OBSTACLE=3 과 같은 값. 0(UNKNOWN)은 "안 채운 값"으로 보고 거부한다.
 REPORT_EVENT_TYPES = {1: "FIRE", 2: "LEAK", 3: "OBSTACLE"}
 # [v2 Patrol Feedback] task_state 값. 이름은 Patrol.action 상수를 그대로 쓴다.
 PATROL_TASK_STATES = {
@@ -118,7 +118,7 @@ PATROL_TASK_STATES = {
 # action_msgs/GoalStatus. 끝난 목표만 순찰 결과로 기록한다. Patrol Result의 outcome과 같은 뜻으로 옮긴다.
 GOAL_STATUS_ACTIVE = {1: "ACCEPTED", 2: "EXECUTING", 3: "CANCELING"}
 GOAL_STATUS_RESULTS = {4: "SUCCEEDED", 5: "CANCELED", 6: "FAILED"}
-# [계약] interfaces.md 3.1절 EStop reason과 대상 값. UI가 원인 집합을 직접 계산하지 않는다.
+# [계약] interfaces.md 9절 EStop reason과 대상 값. UI가 원인 집합을 직접 계산하지 않는다.
 ESTOP_REASONS = {
     0: "UNKNOWN",
     1: "OPERATOR",

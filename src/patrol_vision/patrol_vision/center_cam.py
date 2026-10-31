@@ -13,6 +13,7 @@ from patrol_vision.cam_common import (
     load_and_bump_restart_sequence,
 )
 import rclpy
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
 from ultralytics import YOLO
@@ -91,7 +92,7 @@ class CenterCam(Node):
         now = time.time()
 
         if not ok:                                                     # 읽기 실패한 경우
-            self.get_logger().warning('center_cam: 프레임 읽기 실패')
+            self.get_logger().warning('center_cam: 프레임 읽기 실패', throttle_duration_sec=1.0)
             # 3초 연속 실패 = 장애 판단 기준
             if not self._camera_fault and now - self._last_ok_read_time >= 3.0:
                 self._camera_fault = True                              # 3초 연속 실패 시 장애로 확정
@@ -238,6 +239,8 @@ class CenterCam(Node):
                 self._publish_state('EXITING', avg_conf)
                 self._last_event_time = now_wall
                 self._last_state_text = 'EXITING'
+            else:
+                self.get_logger().warning('center_cam: 쿨다운 중이라 EXITING을 발행하지 않음')
             # 쿨다운으로 발행을 못 했어도 이번 체류 상태는 여기서 전부 리셋한다.
             self._current_roi = None
             self._roi_enter_time = None
@@ -311,11 +314,14 @@ def main():
     node = CenterCam()                                                  # 노드 생성
     try:
         rclpy.spin(node)                                                # 콜백/타이머 반복 실행
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass
     finally:
         node.cap.release()                                              # 카메라 리소스 해제
         cv2.destroyAllWindows()                                         # 디버그 창 정리
         node.destroy_node()                                             # ROS2 노드 정리
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':

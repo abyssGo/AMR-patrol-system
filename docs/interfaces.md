@@ -284,6 +284,7 @@ string detail
 - `image`는 JPEG 또는 PNG 원본이며 최대 1 MiB다.
 - 응답을 받지 못했을 때만 같은 `event_id`와 같은 내용으로 다시 보낸다(최대 3번).
 - 같은 `event_id`에 다른 내용을 보내면 `REJECTED`다.
+- 시스템 모니터가 저장 중 오류를 만나면 `REJECTED`(`detail="storage failure"`)로 답한다. 감지 노드는 `STORED` · `DUPLICATE`가 아닌 응답을 받으면 보고 내용과 사진을 로봇 PC에 따로 남긴다.
 
 ## 8. CCTV 차량 상태
 

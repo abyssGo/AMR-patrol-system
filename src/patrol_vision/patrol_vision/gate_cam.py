@@ -14,6 +14,7 @@ from patrol_vision.cam_common import (
     load_and_bump_restart_sequence,
 )
 import rclpy
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
 from ultralytics import YOLO
@@ -74,7 +75,7 @@ class GateCam(Node):
         now = time.time()
 
         if not ok:                                                    # 읽기 실패한 경우
-            self.get_logger().warning('gate_cam: 프레임 읽기 실패')
+            self.get_logger().warning('gate_cam: 프레임 읽기 실패', throttle_duration_sec=1.0)
             # 3초 연속 실패 = 장애 판단 기준
             if not self._camera_fault and now - self._last_ok_read_time >= 3.0:
                 self._camera_fault = True                             # 3초 연속 실패 시 장애로 확정
@@ -200,10 +201,11 @@ class GateCam(Node):
 
         # 이번 프레임에서 왼쪽/오른쪽 선을 넘었으면 순서대로 기록해둔다(deque maxlen=2라
         # 최근 2개만 남음). 예: 왼쪽 선 넘고 → 오른쪽 선 넘으면 history=['L','R'] = 입차 방향.
-        if crossed(prev_cx, cx, left_x) and 'L' not in self._crossing_history:
-            self._crossing_history.append('L')                        # 왼쪽 선 교차 기록
-        if crossed(prev_cx, cx, right_x) and 'R' not in self._crossing_history:
-            self._crossing_history.append('R')                        # 오른쪽 선 교차 기록
+        # 한 프레임에 두 선을 다 넘었으면(검출이 잠깐 끊긴 뒤 등) 이동 방향 순서로 기록한다.
+        crossed_now = {'L': crossed(prev_cx, cx, left_x), 'R': crossed(prev_cx, cx, right_x)}
+        for mark in (('L', 'R') if cx > prev_cx else ('R', 'L')):
+            if crossed_now[mark] and mark not in self._crossing_history:
+                self._crossing_history.append(mark)                   # 선 교차 기록
 
         seq = list(self._crossing_history)
         if len(seq) >= 2:
@@ -287,11 +289,14 @@ def main():
     node = GateCam()                                                  # 노드 생성
     try:
         rclpy.spin(node)                                              # 콜백/타이머 반복 실행
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass
     finally:
         node.cap.release()                                            # 카메라 리소스 해제
         cv2.destroyAllWindows()                                       # 디버그 창 정리
         node.destroy_node()                                           # ROS2 노드 정리
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':

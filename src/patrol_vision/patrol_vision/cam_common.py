@@ -5,7 +5,7 @@ import os
 
 from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy
 
-# CCTV 이벤트 QoS: 신뢰성 있는 전달, 최근 20개까지 버퍼링(interfaces.md 8절)
+# CCTV 이벤트 QoS: 신뢰성 있는 전달, 최근 20개까지 버퍼링
 # gate_event / center_event 둘 다 이 프로파일을 그대로 쓴다.
 CCTV_EVENT_QOS = QoSProfile(
     reliability=ReliabilityPolicy.RELIABLE,   # 유실 없이 재전송 보장

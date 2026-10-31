@@ -28,7 +28,7 @@ def estop_qos():
     """
     Return a subscriber QoS compatible with RELIABLE / TRANSIENT_LOCAL / KEEP_LAST(1).
 
-    Depth 10 so the three per-target frames of one republish burst are not
+    Depth 10 so frames for different targets (all, robot1, robot6) are not
     overwritten before the callback runs.
     """
     from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy

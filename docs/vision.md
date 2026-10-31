@@ -30,7 +30,7 @@ confidence 필드는 존재하며, 차량 상태 확정에 쓰인 유효 구간(
 
 - 카메라 입력: imgsz=512, YOLO 탐지 confidence 임계값=0.7
 - gate 라인 위치: 좌측 라인 비율 0.32, 우측 라인 비율 0.70, ROI 상단 비율 0.45, ROI 하단 비율 0.95 (화면 가로/세로 비율 기준)
-- center ROI 좌표: TOP=(0.2, 0.15, 0.62, 0.32), BOTTOM=(0.05, 0.76, 0.7, 1.00) (비율 좌표, x1·y1·x2·y2)
+- center ROI 좌표: TOP=(0.25, 0.15, 0.62, 0.32), BOTTOM=(0.05, 0.76, 0.7, 1.00) (비율 좌표, x1·y1·x2·y2)
 - PARKED 확정 체류시간: 5.0초
 - 이벤트 쿨다운: 2.0초 (같은 차량이 이 시간 안에 재발행하지 않도록 방지)
 - 연속 상태 확정 기준: 0.2초(monotonic 연속 유지, 문서 하단 CR 반영 내역)
@@ -88,7 +88,7 @@ CameraState 패키지·필드·enum·event_id·camera_id·QoS는 `patrol_interfa
 | event_id | 위 파일 `build_event_id()` | `cam-<source_session_id>-<state소문자>-<source_sequence 4자리>` |
 | source_session_id | 위 파일 `build_source_session_id()` | `<camera_id>-<YYYYMMDDTHHMMSS>-<restart_sequence 2자리>` |
 | restart_sequence | 위 파일 `load_and_bump_restart_sequence()` | 노드별 로컬 카운터 파일에서 +1, 없거나 손상 시 1 |
-| 확정 기준 | 위 파일 `_on_detection`/`_on_no_detection` | `CONFIRM_SECONDS=0.2`, `time.monotonic()` 연속 유지. 미검출·조건 이탈 시 즉시 초기화(PARKED 5초 dwell 제외) |
+| 확정 기준 | 위 파일 `_on_detection`/`_on_no_detection` | 0.2초를 `time.monotonic()` 기준으로 연속 유지. 미검출·조건 이탈 시 즉시 초기화(PARKED 5초 dwell 제외) |
 | confidence | 위 파일 `_publish_state` | ENTERING/EXITED/EXITING: 0.2초 구간 평균, PARKED: 마지막 0.2초 구간 평균 |
 | topic-camera_id 검증 | cam_master.py `_handle_event` | 불일치 시 폐기 |
 | patrol_allowed 발행 | cam_master.py `_republish_patrol_allowed` | 변경 즉시 발행 + 5 Hz(`PATROL_ALLOWED_PUBLISH_HZ=5.0`) 반복 발행 |

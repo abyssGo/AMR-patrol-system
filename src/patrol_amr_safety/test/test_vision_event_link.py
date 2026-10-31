@@ -248,6 +248,17 @@ def test_report_snapshot_survives_later_camera_updates(vision):
     vision.class_name, vision.bbox, vision.confidence = 'leak', None, 0.0
     assert request.event_type == ReportDetection.Request.FIRE
     assert (request.position.x, request.position.y) == (1.0, 2.0)
+
+
+def test_report_uses_the_confirmed_detection_even_if_the_camera_reset(vision):
+    vision.submit_client.responses = []
+    stop_confirmed(vision)
+    vision.class_name, vision.bbox, vision.confidence = None, None, 0.0   # 카메라 콜백이 초기화
+    vision.submit_event(np.zeros((20, 20, 3), dtype=np.uint8), event_id='det-3',
+                        detection=('fire', 0.91, (2, 2, 8, 8)))
+    request = vision.submit_client.calls[0][0]
+    assert request.event_id == 'det-3'
+    assert request.event_type == ReportDetection.Request.FIRE
     assert request.detected_at.sec == 10
     assert len(request.image) > 0
 

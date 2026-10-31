@@ -30,7 +30,7 @@ Mission supervisor: AMR Patrol Action Server (A-1_지능1_시스템_설계도 01
   도크 앞까지 못 가면 가장 가까운 안전구역에 정차한다(그것도 안 되면 그 자리).
 - Cancel: 진행 중인 동작을 모두 취소하고 정지 후 CANCELED(CONTROL_CANCELED).
 
-순찰 경로 · 360° 회전 값은 시연 경로와 같고, 정지 확인 · 안전구역은
+순찰 경로 · 도크 · 안전구역 좌표는 config/site.yaml에서 읽고, 정지 확인 · 안전구역 이동은
 move_to_safetyzone 구현을 쓴다.
 """
 

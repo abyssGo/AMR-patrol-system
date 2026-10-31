@@ -39,7 +39,6 @@ else:
     from event_check import VisionPatrolLink
 
 
-DEFAULT_ROBOT_ID = 'robot1'
 # 카메라: /{robot}/oakd/rgb/image_raw/compressed (카메라 드라이버에서 컴프레스드 발행을 켜야 함)
 # 위치: /{robot}/amcl_pose (map 좌표)
 SUBMIT_SERVICE = '/system_monitor/report_detection'
@@ -149,7 +148,9 @@ class DetectingNode(Node):
     def __init__(self):
         super().__init__('detecting_node')
         # 로봇 ID는 실행 namespace(/robot1 · /robot6)에서 정한다(설계도: 두 AMR에 같은 노드).
-        self.robot_id = self.get_namespace().strip('/') or DEFAULT_ROBOT_ID
+        self.robot_id = self.get_namespace().strip('/')
+        if not self.robot_id:
+            raise RuntimeError('detecting_node must run in a robot namespace')
         self.camera_topic = f'/{self.robot_id}/oakd/rgb/image_raw/compressed'
         self.pose_topic = f'/{self.robot_id}/amcl_pose'
         self.hfov = math.radians(CAMERA_HORIZONTAL_FOV_DEG)
@@ -492,21 +493,26 @@ class DetectingNode(Node):
 
         return (x1 + t1 * d1x, y1 + t1 * d1y)
 
-    def submit_event(self, frame, event_id=None):
+    def submit_event(self, frame, event_id=None, detection=None):
         """
         Build the ReportDetection request and send it on a worker thread.
 
         scenarios.md 3장: 응답이 없을 때만 같은 event_id와 같은 내용으로 재시도한다.
         저장 결과(STORED · DUPLICATE · REJECTED)를 받으면, 또는 재시도가 끝나면
         patrol_resume(true)을 보내 mission_supervisor가 순찰을 이어 가게 한다.
+        detection(class_name, confidence, bbox)은 확정한 프레임의 값이다. 보고하는 동안
+        카메라 콜백이 self.class_name · self.bbox를 바꿔도 이 값으로 보고한다.
         """
+        if detection is None:
+            detection = (self.class_name, self.confidence, self.bbox)
+        class_name, confidence, bbox = detection
         frame_width = frame.shape[1]
         evidence_frame = frame.copy()
-        x1, y1, x2, y2 = self.bbox
+        x1, y1, x2, y2 = bbox
         cv2.rectangle(evidence_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
         cv2.putText(
             evidence_frame,
-            f'{self.class_name} {self.confidence:.2f}',
+            f'{class_name} {confidence:.2f}',
             (x1, max(20, y1 - 10)),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.7,
@@ -521,11 +527,10 @@ class DetectingNode(Node):
             return
 
         event_id = event_id or str(uuid.uuid4())
-        class_name = self.class_name
         # 보고 시점(=지금)의 위치·방향을 스냅샷으로 떠서 그대로 쓴다(응답을 기다리는
         # 동안 로봇이 움직였을 수 있어 나중에 다시 조회하면 엉뚱한 값이 될 수 있음).
         position = self.get_current_position()
-        theta = self.compute_theta(self.bbox, frame_width)
+        theta = self.compute_theta(bbox, frame_width)
 
         request = ReportDetection.Request()
         request.robot_id = self.robot_id
@@ -578,7 +583,7 @@ class DetectingNode(Node):
                 )
                 continue
             self.get_logger().info(
-                f'SUBMIT 결과 | event_id={event_id} status={response.status} '
+                f'SUBMIT result | event_id={event_id} status={response.status} '
                 f'detail={response.detail!r}'
             )
             if response.status in (ReportDetection.Response.STORED,
@@ -771,8 +776,16 @@ class DetectingNode(Node):
         return 'aligned'
 
     def execute_detect(self, goal_handle):
-        goal = goal_handle.request
         self._goal_active = True
+        try:
+            return self._run_detect(goal_handle)
+        except Exception as error:
+            # 예외로 끝나도 정지 요청 · Goal 상태가 남아 감지가 멈추지 않게 정리한다.
+            self.get_logger().error(f'DETECT failed | {error}')
+            return self._finish_detect(goal_handle, False)
+
+    def _run_detect(self, goal_handle):
+        goal = goal_handle.request
         min_conf = goal.min_confidence if goal.min_confidence > 0.0 else YOLO_CONFIDENCE
         target_class = self._candidate or self.class_name
         self.get_logger().info(
@@ -820,11 +833,14 @@ class DetectingNode(Node):
                                   elapsed, detection[1], average)
             if elapsed >= HOLD_DURATION_SEC:
                 class_name, confidence, bbox = detection
+                if goal_handle.is_cancel_requested:
+                    # 취소된 Goal은 확정으로 보고하지 않는다(mission_supervisor도 결과를 쓰지 않음).
+                    return self._finish_detect(goal_handle, False)
                 self.class_name, self.confidence, self.bbox = class_name, confidence, bbox
                 self.get_logger().info(
                     f'DETECT confirmed | id={goal.detection_id} class={class_name} '
                     f'avg={average:.2f} frames={len(confs)}')
-                self.submit_event(frame, event_id=goal.detection_id)
+                self.submit_event(frame, event_id=goal.detection_id, detection=detection)
                 self.reported = True
                 return self._finish_detect(goal_handle, True, average=average,
                                            event_type=self.event_type_map[class_name])

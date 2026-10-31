@@ -282,7 +282,7 @@ def report_detection_payload(request):
 def estop_payload(message):
     """계약 EStop(/control/estop)을 안전 상태 저장 입력으로 바꾼다.
 
-    interfaces.md v1.0: header·target_robot_id·active·reason·sequence만 쓴다.
+    interfaces.md 9절: header·target_robot_id·active·reason·sequence만 쓴다.
     """
     try:
         observed_at = _stamp_iso(message.header.stamp)

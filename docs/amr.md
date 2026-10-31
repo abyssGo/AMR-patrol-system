@@ -141,7 +141,8 @@ EStop과 Token 끊김은 모든 대기 구간(주행, 회전, 언도킹, 도킹,
 flowchart TD
     N[cmd_vel_safety_in<br/>Nav2] --> A{0.5초 안에 받은 후보가 몇 개?}
     Y[cmd_vel_yaw<br/>정렬 회전] --> A
-    A -->|0개 또는 2개| Z[0 속도]
+    A -->|0개| X[출력 없음<br/>구동부는 명령이 끊기면 멈춤]
+    A -->|2개| Z[0 속도]
     A -->|1개| G{Token 유효<br/>EStop 아님<br/>EStop 연결 살아 있음?}
     G -->|아니오| Z
     G -->|예| O[cmd_vel로 그대로]

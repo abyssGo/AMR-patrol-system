@@ -11,7 +11,7 @@ AMR PC(PC 1 `robot1`, PC 2 `robot6`)에서 실행하는 노드다. 관제(PC 3)�
 | 노드 | 하는 일 |
 |---|---|
 | `mission_supervisor` | 관제의 `/{robot}/patrol_action`(`Patrol`) 서버. Goal 수락 → `WAITING_FOR_TOKEN` → 유효한 `DriveToken`을 받으면 언도킹 · 초기 위치 → WP1 ~ WP6 → WP3 → WP7 → WP1(각 360° 회전) → 자기 도크 앞 → 도킹(최대 3번). 진행은 Feedback, 끝은 Result |
-| `local_safety_supervisor` | Nav2 후보(`cmd_vel_safety_in`)와 정렬 회전 후보(`cmd_vel_yaw`) 중 0.5초 안에 받은 하나만, `DriveToken`이 유효하고 EStop이 없을 때 `cmd_vel`로 넘긴다. 그 밖에는 0 속도 |
+| `local_safety_supervisor` | Nav2 후보(`cmd_vel_safety_in`)와 정렬 회전 후보(`cmd_vel_yaw`) 중 0.5초 안에 받은 하나만, `DriveToken`이 유효하고 EStop이 없을 때 `cmd_vel`로 넘긴다. 두 후보가 겹치거나 권한 · EStop 조건이 맞지 않으면 0 속도 |
 | `vision_node_v2` | OAK-D 영상을 YOLO로 보고 후보가 보이면 `patrol_stop`으로 정지 요청 → `DetectEvent`를 받아 **정렬(제자리 회전으로 대상을 화면 가운데로) → 검증(신뢰도 0.70 이상 1초)** → 확정이면 `ReportDetection`(event_id = detection_id) → 저장 결과를 받으면 `patrol_resume` |
 
 ### 실행 중 처리 (`mission_supervisor`)

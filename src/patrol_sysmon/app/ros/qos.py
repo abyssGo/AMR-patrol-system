@@ -1,4 +1,4 @@
-"""interfaces.md 5절 QoS 계약을 rclpy 객체로 만든다."""
+"""interfaces.md의 토픽별 QoS 계약을 rclpy 객체로 만든다."""
 
 
 def _qos_profiles():
@@ -30,7 +30,7 @@ def _qos_profiles():
         reliability=ReliabilityPolicy.RELIABLE,
         durability=DurabilityPolicy.VOLATILE,
     )
-    # [permit 발행 계약] interfaces.md의 KEEP_LAST(1)·deadline 500 ms 그대로다.
+    # [permit 발행] 테스트 도구가 cam_master와 같은 조건(KEEP_LAST(1)·deadline 500 ms)으로 발행할 때 쓴다.
     permit_writer = QoSProfile(
         history=HistoryPolicy.KEEP_LAST,
         depth=1,

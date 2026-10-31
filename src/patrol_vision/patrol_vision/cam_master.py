@@ -7,6 +7,7 @@ from patrol_interfaces.msg import CameraState                        # 구독할
 from patrol_vision.cam_common import CCTV_EVENT_QOS
 import rclpy                                                         # ROS2 파이썬 클라이언트
 from rclpy.duration import Duration                                  # QoS deadline 설정용
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node                                          # ROS2 노드 베이스 클래스
 from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy  # QoS 설정
 from std_msgs.msg import Bool                                        # patrol_allowed 메시지 타입
@@ -49,6 +50,7 @@ class CamMaster(Node):
         self._seen_event_ids = {}             # event_id -> 수신 시각(monotonic), 중복 판정용
         self._last_gate_time = None           # gate_event 마지막 수신 시각(monotonic)
         self._last_center_time = None         # center_event 마지막 수신 시각(monotonic)
+        self._timeout_warned = set()          # 미수신 경고를 이미 남긴 카메라(다음 이벤트까지 한 번만)
         self._last_accepted_event_stamp = None  # 지금까지 반영한 이벤트 중 가장 최신 header.stamp(순서 역전 가드)
 
         self.publisher_ = self.create_publisher(                       # patrol_allowed 발행자 생성
@@ -68,10 +70,12 @@ class CamMaster(Node):
 
     def _on_gate_event(self, msg: CameraState):
         self._last_gate_time = time.monotonic()                        # 수신 시각 갱신(timeout 감시용)
+        self._timeout_warned.discard('gate')
         self._handle_event(msg, GATE_ALLOWED_STATES, 'gate', GATE_CAMERA_ID)
 
     def _on_center_event(self, msg: CameraState):
         self._last_center_time = time.monotonic()                      # 수신 시각 갱신(timeout 감시용)
+        self._timeout_warned.discard('center')
         self._handle_event(msg, CENTER_ALLOWED_STATES, 'center', CENTER_CAMERA_ID)
 
     # gate_event/center_event로 들어온 메시지 하나를 검증 후 patrol_allowed에 반영하는 함수.
@@ -155,7 +159,9 @@ class CamMaster(Node):
         for label, last_time in (
                 ('gate', self._last_gate_time),
                 ('center', self._last_center_time)):
-            if last_time is not None and now - last_time > EVENT_TIMEOUT_WARN_SEC:
+            if (last_time is not None and now - last_time > EVENT_TIMEOUT_WARN_SEC
+                    and label not in self._timeout_warned):
+                self._timeout_warned.add(label)
                 self.get_logger().warning(
                     f'[{label}] {EVENT_TIMEOUT_WARN_SEC:.1f}s 이상 이벤트 미수신, '
                     f'patrol_allowed 마지막 값 유지: {self._patrol_allowed}')
@@ -175,9 +181,12 @@ def main():
     node = CamMaster()                                                  # 노드 생성
     try:
         rclpy.spin(node)                                                # 콜백/타이머 반복 실행
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass
     finally:
         node.destroy_node()                                             # ROS2 노드 정리
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
