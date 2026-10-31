@@ -1,132 +1,146 @@
-# Control Server 기능 설계
+# 관제(Control Server) 기능 설계
 
-> 상태: `patrol_interfaces 2.0.0` 기본 관제 노드 구현 대조 완료 · 종단 통합시험 전
+> 기준일: 2026-09-13 · 계약: `patrol_interfaces 2.1.0` · 패키지: `patrol_control 0.3.0`
 >
-> 담당: 관제 팀
->
-> 통합 실행 위치: PC 3
+> 실행 위치: PC 3
 
-공용 타입·토픽·Action·Service 필드는 [공용 인터페이스](interfaces.md)를 기준으로 한다. 이 문서는 `src/patrol_control`이 소유하는 판단과 코드 흐름만 정의한다.
+공용 타입·토픽·서비스 필드는 [interfaces.md](interfaces.md)를 따른다. 이 문서는
+`src/patrol_control`이 맡는 판단과 코드 흐름을 설명한다.
 
-## 1. 구현 범위
+## 1. 하는 일
 
-- `robot1`, `robot6` Patrol Action Client
-- 시스템 전체에서 한 번에 하나의 활성 Patrol Goal
-- `patrol_allowed` 구독과 `PatrolCommand` 발행
-- 로봇별 Drive Token 5 Hz 발행과 1초 lease
-- Action Feedback·Result 처리
-- 화재 확정 시 다음 순찰을 막는 내부 `fire_hold`
-- Action 취소 시 즉시 Token 회수
+- `robot1`, `robot6` Patrol Action Client, 한 번에 한 로봇만 순찰
+- 교대 순찰: 도킹을 마친 로봇 다음 차례의 로봇을 자동 출발
+- 로봇별 DriveToken 발행(5 Hz, lease 1초), 순찰 중인 로봇에만 권한 부여
+- CCTV `patrol_allowed` 변화에 따라 `MOVE_TO_SAFE_ZONE` / `RESUME_PATROL`
+- 화재 확정 시 `fire_hold`
+- EStop 단일 발행자(Safety Arbiter)
+- 배터리에 따른 출발 제한과 충전 대기
+- 도킹 실패 등으로 도크에 없는 로봇을 교대 순서에서 제외
+- 관제를 다시 띄웠을 때 남아 있는 임무 정리와 상태 복원
+- 운영자 명령을 터미널 ROS 서비스로 받음
 
-현재 구현하지 않는 범위:
+## 2. 파일 구성
 
-- EStop 동작
-- 외부 운영 UI·인증 API
-- 자동 역할 교대와 배터리 정책
-- 시스템 모니터용 운행 상태 API
-- 실제 AMR·CCTV 종단 통합시험
+| 파일 | 내용 |
+|---|---|
+| `patrol_control/control_core.py` | ROS 없는 상태 머신 `ControlCore`. 출발 판단, Token, permit 명령, fire hold, EStop, 교대, 배터리, 상태 저장 형식 |
+| `patrol_control/patrol_control_node.py` | ROS 노드 `PatrolControlNode`. Action Client, 발행·구독, 운영 서비스, 타이머, 남은 임무 감시 |
+| `patrol_control/control_state.py` | `~/.ros/patrol_control/state.json` 읽기·쓰기(원자적 저장) |
 
-## 2. 기본 제어 규칙
-
-1. Action Server가 준비되고 `patrol_allowed=true`일 때만 Patrol Goal을 보낸다.
-2. Goal 수락 후에도 `WAITING_FOR_TOKEN` Feedback 전에는 빈 Token을 유지한다.
-3. `WAITING_FOR_TOKEN`과 permit을 모두 확인한 뒤 활성 로봇에 Token을 발급한다.
-4. `patrol_allowed=false` 전이에는 `MOVE_TO_SAFE_ZONE`을 한 번 보낸다.
-5. `patrol_allowed=true` 전이에는 `RESUME_PATROL`을 한 번 보낸다.
-6. Action이 끝나거나 취소되면 Token을 회수하고 활성 슬롯을 해제한다.
-7. `DETECTION_CONFIRMED + FIRE`에서는 현재 Action의 Token은 유지하고, Action 종료 후 `fire_hold`가 해제되기 전까지 새 순찰을 시작하지 않는다.
-
-## 3. 파일별 구현
-
-| 파일 | 진입점 | 입력 | 출력 |
-|---|---|---|---|
-| `src/patrol_control/patrol_control/control_core.py` | `ControlCore` | permit, Goal 수락, Patrol Feedback, 완료·취소 | Goal·PatrolCommand·Token 상태, fire hold |
-| `src/patrol_control/patrol_control/patrol_control_node.py` | `PatrolControlNode`, `main` | ROS Action Feedback·Result, `patrol_allowed`, timer | Patrol Goal, PatrolCommand, DriveToken |
-
-### 3.1 `control_core.py` — 구현 대조 완료 (`patrol_control 0.2.0`)
+## 3. 출발 판단
 
 ```mermaid
 flowchart TD
-    P[observe_permit] --> C{permit 값 변경?}
-    C -->|아니오| N[출력 없음]
-    C -->|예| A{수락된 활성 Goal?}
-    A -->|아니오| S[permit만 저장]
-    A -->|false| M[MOVE_TO_SAFE_ZONE 생성]
-    A -->|true| R[RESUME_PATROL 생성]
-
-    G[prepare_goal] --> V{robot·permit·active·fire_hold 검증}
-    V -->|실패| X[ControlStateError]
-    V -->|통과| Q[활성 robot 예약·GoalIntent]
-    Q --> GA[mark_goal_accepted]
-    GA --> F[observe_feedback]
-    F --> W{WAITING_FOR_TOKEN + permit true?}
-    W -->|예| T[Token 생성·drive_granted]
-    W -->|아니오| K[Token 상태 유지]
-    F --> D{DETECTION_CONFIRMED + FIRE?}
-    D -->|예| H[fire_hold와 event_id 저장]
-    T --> E[finish_goal 또는 revoke_drive]
-    H --> E
-    E --> Z[빈 Token·활성 상태 정리]
+    T[1초 주기 판단] --> R{교대 순찰 켜짐?}
+    R -->|아니오| W[대기]
+    R -->|예| A{순찰 중인 로봇 있음?}
+    A -->|예| W
+    A -->|아니오| U{관제가 모르는 임무 남음?}
+    U -->|예| W
+    U -->|아니오| F{fire_hold?}
+    F -->|예| W
+    F -->|아니오| P{patrol_allowed = true?}
+    P -->|아니오| W
+    P -->|예| E{EStop all?}
+    E -->|예| W
+    E -->|아니오| N[차례대로 로봇 확인]
+    N --> K{제외·충전 대기·EStop·resume 대기 아님<br/>배터리 30% 이상<br/>Action server 준비됨?}
+    K -->|아니오| N2[다음 로봇 확인]
+    K -->|예| G[Patrol Goal 전송]
 ```
 
-실패·복구:
-
-- 알 수 없는 robot, permit 미허용, 이미 존재하는 활성 Goal, fire hold는 Goal 생성을 거절한다.
-- 다른 로봇 또는 알 수 없는 상태의 Feedback은 상태를 바꾸지 않는다.
-- permit false에서는 `WAITING_FOR_TOKEN`을 받아도 Token을 발급하지 않는다.
-- fire hold는 `clear_fire_hold()`의 명시적 호출로만 해제한다.
-
-### 3.2 `patrol_control_node.py` — 구현 대조 완료 (`patrol_control 0.2.0`)
+## 4. 임무 한 번의 흐름
 
 ```mermaid
 flowchart TD
-    S[main] --> N[PatrolControlNode 생성]
-    N --> I[로봇별 Action Client·명령/Token Publisher 생성]
-    N --> P[patrol_allowed Subscriber 생성]
-    N --> T[Token timer 생성]
-
-    P --> PC[_on_patrol_allowed]
-    PC --> CORE1[ControlCore.observe_permit]
-    CORE1 --> CMD[PatrolCommand 발행]
-    PC --> AUTO[_try_auto_start]
-
-    AUTO --> READY{permit true·Action Server ready?}
-    READY -->|아니오| WAIT[다음 callback에서 재확인]
-    READY -->|예| GOAL[send_goal_async]
-    GOAL --> RESP{Goal response}
-    RESP -->|거절·예외| CLEAR[활성 예약 해제]
-    RESP -->|수락| FB[Feedback callback]
-    FB --> CORE2[ControlCore.observe_feedback]
-    CORE2 --> TOKEN[다음 timer에서 권한 반영]
-    RESP --> RESULT[get_result_async]
-    RESULT --> DONE[결과 기록·Token 회수]
-
-    T --> FRAME[ControlCore.token_frames]
-    FRAME --> PUB[로봇별 DriveToken 발행]
+    G[Goal 전송] --> RESP{10초 안에 응답?}
+    RESP -->|거절·시간 초과| NR[차례만 넘김]
+    RESP -->|수락| FB[Feedback]
+    FB --> WT{WAITING_FOR_TOKEN<br/>+ permit true?}
+    WT -->|예| TK[DriveToken 발급]
+    FB --> FI{DETECTION_CONFIRMED + FIRE?}
+    FI -->|예| FH[fire_hold 켬]
+    FB --> BL{BLOCKED이고 재개 명령 대기?}
+    BL -->|예| RS[재개 명령 다시 보냄<br/>최대 10초]
+    TK --> RES[Result]
+    RES --> REV[Token 회수]
+    REV --> O{결과}
+    O -->|SUCCEEDED<br/>FAILED LOW_BATTERY| D[도킹함 → 다음 로봇 차례]
+    O -->|그 밖의 FAILED| X[이 로봇 제외 → 다른 로봇 차례]
+    O -->|CANCELED| S[교대 정지]
 ```
 
-실패·취소:
+- `FAILED(LOW_BATTERY)`는 도킹을 마친 것이므로 다음 로봇에 넘기고, 그 로봇은 배터리 80%가 될 때까지 충전 대기로 둔다.
+- 제외된 로봇은 운영자가 `/control/start_patrol`을 호출하면 다시 순서에 들어간다.
+- 실행 중 AMR Action server가 10초 넘게 사라지면 그 임무를 실패로 보고 관제가 모르는 임무로 표시한다.
 
-- Action Server가 준비되지 않으면 비동기로 기다리며 5초 간격으로 경고한다.
-- Goal 거절·전송 오류는 활성 예약을 해제한다.
-- 취소 요청은 Drive Token을 먼저 회수하고 Action Cancel을 비동기로 보낸다.
-- Result 수신 오류도 활성 상태와 Token을 정리한다.
+## 5. permit과 명령
 
-## 4. 실행
+- `patrol_allowed` 값이 바뀔 때만 명령을 만든다. 같은 값 반복은 무시한다.
+- 순찰 중인 로봇이 Goal 수락 상태일 때만 보낸다: false → `MOVE_TO_SAFE_ZONE`, true → `RESUME_PATROL`.
+- 그 로봇에 EStop이 걸려 있거나 resume 대기 중이면 명령을 보내지 않는다. 그때의 명령은 `/control/resume`에서 정한다.
 
-기본값은 자동 시작하지 않는다. 기본 경로 순찰 한 번을 자동 시작하는 통합용 실행 예시는 다음과 같다.
+## 6. EStop
+
+```mermaid
+flowchart TD
+    S["/control/set_estop"] --> V{대상·reason 유효?}
+    V -->|아니오| NO[success=false]
+    V -->|예| ST[대상 상태 저장, sequence 증가]
+    ST --> AC{active?}
+    AC -->|예| PD[영향받는 로봇을 resume 대기로]
+    AC -->|아니오| KEEP[resume 대기는 유지]
+    PD --> PUB["대상마다 1초 주기로 /control/estop 재발행"]
+    KEEP --> PUB
+    RQ["/control/resume"] --> REL[EStop이 풀린 로봇의 resume 대기 해제]
+    REL --> CMD{순찰 중인 로봇이 풀렸나?}
+    CMD -->|예, permit true| RP[RESUME_PATROL]
+    CMD -->|예, permit false| MS[MOVE_TO_SAFE_ZONE]
+```
+
+- 대상은 `robot1`, `robot6`, `all`이다. 세 대상의 현재 상태를 0.33초 간격으로 하나씩 발행해 대상마다 1초 주기가 된다.
+- sequence는 관제를 다시 띄워도 줄어들지 않게 현재 시각(ms)보다 작아지지 않도록 한다.
+- EStop 중에도 DriveToken은 유지한다. EStop과 Token은 AMR에서 각각 따로 막는다.
+
+## 7. 관제가 모르는 임무
+
+관제를 다시 띄우면 AMR에는 이전 관제가 보낸 임무가 남아 있을 수 있다.
+
+- 각 로봇의 `/{robot}/patrol_action/_action/status`를 구독해, 관제가 보낸 Goal UUID가 아닌 실행 중인 Goal을 찾는다.
+- 찾으면 `CancelGoal`(전체 취소)을 보내고 5초마다 다시 보낸다.
+- 그 임무가 끝났거나 로봇이 사라진 것이 확인될 때까지 아무 로봇도 출발시키지 않는다.
+- 시작 후 10초는 확인 시간으로 출발을 미룬다.
+- 이전에 순찰 중이던 로봇은 도크에 없을 수 있으므로, 임무가 끝나기 전에는 `/control/start_patrol`로도 순서에 넣지 않는다.
+
+## 8. 상태 저장
+
+`~/.ros/patrol_control/state.json`에 저장하는 값: `fire_hold`와 화재 사건 ID, 교대 켜짐,
+제외된 로봇, 충전 대기, resume 대기, EStop 상태와 sequence, 순찰 중이던 로봇, 다음 차례.
+상태가 바뀔 때마다 임시 파일에 쓰고 바꿔 넣는다.
+
+## 9. 실행
 
 ```bash
-ros2 run patrol_control patrol_control_node --ros-args \
-  -p auto_start:=true \
-  -p initial_robot_id:=robot1
+ros2 run patrol_control patrol_control_node
+ros2 run patrol_control patrol_control_node --ros-args -p auto_start:=true
 ```
 
-자동 시작은 `patrol_allowed=true`를 받은 뒤에만 시도한다. 새 순찰을 반복 실행하거나 로봇을 운영 중 선택하는 기능은 향후 관제 소유 UI/API가 `start_patrol(robot_id)`를 호출하도록 연결한다.
+| 파라미터 | 기본값 | 의미 |
+|---|---|---|
+| `robot_ids` | `[robot1, robot6]` | 관리할 로봇과 교대 순서 |
+| `initial_robot_id` | 첫 번째 로봇 | 처음 출발할 로봇 |
+| `auto_start` | `false` | 시작하자마자 교대 순찰을 켬 |
+| `token_publish_hz` | `5.0` | DriveToken 발행 주기 |
+| `token_lease_seconds` | `1.0` | DriveToken lease |
 
-## 5. 검증 상태
+운영 서비스는 [interfaces.md 3.2절](interfaces.md#32-관제-운영-서비스)을 따른다.
 
-- 순수 상태 머신 단위시험: permit 게이트, Token 발급 순서, 차량 회피 명령 중복 방지, 화재 hold, 취소 회수, 잘못된 Feedback 무시
-- ROS 패키지 빌드: `patrol_interfaces`, `patrol_control` 함께 성공
-- 노드 생성 smoke test: 로봇별 Action Client·PatrolCommand·DriveToken과 CCTV permit 토픽 생성 확인
-- 실제 Action Server·CCTV·AMR 연결: 미실행
+## 10. 시험
+
+```bash
+cd src/patrol_control && python3 -m pytest -q test
+```
+
+- `test_control_core.py`: Goal 조건, Token 발급 순서와 sequence, permit 명령 중복 방지, fire hold, Token 회수
+- `test_patrol_control_node.py`: 교대·도킹 실패 제외·배터리 충전 대기, EStop과 resume, 관제가 모르는 임무 취소와 상태 복원, Goal 응답 시간 초과, 서버 사라짐, 재개 명령 재전송

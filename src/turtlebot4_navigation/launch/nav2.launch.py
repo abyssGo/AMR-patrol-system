@@ -28,6 +28,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import PushRosNamespace, SetRemap
+from launch_ros.substitutions import FindPackageShare
 
 
 ARGUMENTS = [
@@ -35,7 +36,8 @@ ARGUMENTS = [
                           choices=['true', 'false'],
                           description='Use sim time'),
     DeclareLaunchArgument('params_file',
-                          default_value='/home/mu-01/patrol/src/turtlebot4_navigation/config/nav2.yaml',
+                          default_value=PathJoinSubstitution(
+                              [FindPackageShare('turtlebot4_navigation'), 'config', 'nav2.yaml']),
                           description='Nav2 parameters'),
     DeclareLaunchArgument('namespace', default_value='',
                           description='Robot namespace')

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the patrol_interfaces 2.0.0 source and optional installed types."""
+"""Verify the patrol_interfaces 2.1.0 source and optional installed types."""
 
 from __future__ import annotations
 
@@ -13,18 +13,16 @@ import sys
 import xml.etree.ElementTree as ET
 
 
-EXPECTED_VERSION = "2.0.0"
+EXPECTED_VERSION = "2.1.0"
 EXPECTED_INTERFACES = {
     "action": ("Patrol",),
     "msg": (
         "CameraState",
-        "DetectionEvidence",
         "DriveToken",
         "EStop",
-        "MissionExecutionEvent",
         "PatrolCommand",
     ),
-    "srv": ("ReportDetection",),
+    "srv": ("ReportDetection", "SetEStop"),
 }
 REMOVED_MESSAGES = (
     "AlignmentStatus",
@@ -32,11 +30,13 @@ REMOVED_MESSAGES = (
     "ControlHeartbeat",
     "DetectionCandidate",
     "DetectionEvent",
+    "DetectionEvidence",
     "DetectionResult",
     "EvidenceChunk",
     "IngestionAck",
     "KeepoutStatus",
     "MissionCommand",
+    "MissionExecutionEvent",
     "PatrolReport",
     "PatrolVisit",
     "RobotStatus",
@@ -135,6 +135,7 @@ def _source_report(root: Path) -> dict[str, object]:
     required_fragments = {
         "action/Patrol.action": (
             "uint8 WAYPOINT_REACHED=11",
+            "uint16 REASON_LOW_BATTERY=11",
             "uint8 outcome",
             "string current_waypoint_id",
         ),
@@ -150,21 +151,15 @@ def _source_report(root: Path) -> dict[str, object]:
             "uint8 STATE_UNKNOWN=0",
             "uint8 STATE_EXITING=4",
         ),
-        "msg/DetectionEvidence.msg": (
-            "string event_id",
-            "sensor_msgs/CompressedImage image",
-        ),
-        "msg/MissionExecutionEvent.msg": (
-            "uint8 RESULT_STORED=5",
-            "bool has_result",
-            "uint8 result_outcome",
-            "uint16 result_reason_code",
-            "string result_reason",
-        ),
         "srv/ReportDetection.srv": (
             "uint8[] image",
             "uint8 STORED=0",
             "uint8 REJECTED=2",
+        ),
+        "srv/SetEStop.srv": (
+            "string target_robot_id",
+            "bool active",
+            "uint8 reason",
         ),
     }
     for relative, fragments in required_fragments.items():

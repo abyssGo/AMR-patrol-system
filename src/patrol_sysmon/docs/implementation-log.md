@@ -1210,7 +1210,7 @@ EStopState ───→ 최신 1행 + 활성·해제가 바뀐 시점만 이력
 - 배경: 관제 설계 제안(Sysmon 팀 소통사항 3.1~3.7)을 현재 구현과 대조했다. 3.3 STALE·UNREPORTED 분리, 3.6 TRANSIENT_LOCAL 복원, 3.7 Dashboard 제외 목록은 이미 같은 방식이었다.
 - **증적 지연·누락(3.5 일부) 반영**: 저장값 `INCOMPLETE`·`STORED`·`REJECTED`는 그대로 두고, 조립이 끝나지 않은 경과 시간으로 화면에서 `DELAYED`(기본 30초)·`MISSING`(기본 300초)을 계산한다. 관제가 없는 결과를 만들어 저장하지 않는다는 원칙을 지키기 위해 파생 표시로만 구분했다.
   - 변경 파일: `app/__init__.py`(임계값 2개), `app/models/event.py`(목록·상세 조회에 조립 상태 join), `app/services/event_service.py`(`evidence_state`, 라벨), `app/static/js/events.js`·`dashboard.css`(주황 표시), `tests/test_detection_ingestion.py`.
-- **당시 작업 기록 `CR-003` 작성(현재 저장소에 파일 없음)**: `/control/operational_state`·`/control/operational_event` 도입에 동의하되 21단계 이후 반영을 제안했다. 새 메시지 두 개가 계약 v1.1과 네 PC 재빌드를 요구하고, 현재 자체 계산 중인 STALE·UNREPORTED·CCTV timeout과 판단 주체가 겹치기 때문이다. 필드명 `event_id` 충돌과 전환 시점도 확정 대상으로 적었다. 현행 공용 전달 계약은 [TBD-IF-011](../../../docs/interfaces.md#tbd)이다.
+- **당시 작업 기록 `CR-003` 작성(현재 저장소에 파일 없음)**: `/control/operational_state`·`/control/operational_event` 도입에 동의하되 21단계 이후 반영을 제안했다. 새 메시지 두 개가 계약 v1.1과 네 PC 재빌드를 요구하고, 현재 자체 계산 중인 STALE·UNREPORTED·CCTV timeout과 판단 주체가 겹치기 때문이다. 필드명 `event_id` 충돌과 전환 시점도 확정 대상으로 적었다. 현행 공용 전달 계약은 [TBD-IF-011](../../../docs/interfaces.md)이다.
   - 같은 요청서에 PostgreSQL 전환은 13단계 측정치를 근거로 운영 전환 과제로 남기고, durable spool은 계약 3.8절의 생산자 재전송과 중복이라는 검토 결과를 함께 남겼다.
 - 검증: `.venv` 115개 통과, ROS를 source한 전체 시험도 통과. 새 시험은 조각이 하나만 도착한 증적이 시간 경과에 따라 `INCOMPLETE → DELAYED → MISSING`으로 바뀌고, 나머지 조각이 도착하면 `STORED`가 되는 것을 확인한다.
 
@@ -1291,3 +1291,9 @@ flowchart TD
 - 설계 이유: 0을 "모름"으로 받으면 상대가 값을 안 채워도 저장되므로 거부한다. 억제는 `event_id`가 매번 바뀌는 보고에 대한 서버 측 방어이며, 응답은 DUPLICATE로 돌려 상대가 재전송을 멈추게 한다. 기준선 v1.1의 종류 값과 같은 숫자를 써 상대가 `DetectionCandidate` 값을 그대로 넣을 수 있다.
 - 검증: `tests/` 128개 통과(skip 7, 신규 억제 시험 1·종류 시험 보강). 재빌드 후 임시 DB로 어댑터를 띄워 5회 호출: STORED → DUPLICATE → REJECTED(내용 다름) → REJECTED(robot9) → DUPLICATE(60초 억제, detail에 사유). 사건 1행·파일 1장만 남았다.
 - 남은 일: 억제 창 60초와 종류만 키로 쓰는 규칙은 운영값 확인 필요. 요청서를 6개 필드로 갱신해 전달한다.
+
+## 41. patrol_interfaces 2.1.0 반영 (2026-09-13)
+
+- 목적: 공용 인터페이스가 2.1.0이 됐다. 2.0.0에 `srv/SetEStop.srv`와 Patrol Result `REASON_LOW_BATTERY=11`을 더하고, 어느 노드도 쓰지 않던 `DetectionEvidence`·`MissionExecutionEvent`를 뺐다. 남은 타입의 필드는 그대로다. 시스템 모니터는 뺀 두 타입을 쓰지 않는다.
+- 변경 파일·함수: 시스템 모니터 코드는 바꾸지 않았다. `/control/estop`은 이제 관제가 실제로 발행하므로 기존 EStop 구독이 그대로 이력을 남긴다. Result `reason_code`는 정수로 저장하므로 11도 그대로 받는다. `tests/test_ros_adapter.py`·`testkit/ros_topic_test.py`의 영상 토픽명을 37절의 실제 이름(`/robot1/oakd/rgb/preview/image_raw/compressed`, `/robot6/oakd/rgb/image_raw/compressed`, `/vision/cctv/gate_image/compressed`, `/vision/cctv/center_image/compressed`)으로 다시 맞췄다. 2026-09-09 병합에서 예전 이름으로 되돌아가 있었다.
+- 검증: `tests/` 전체 통과.

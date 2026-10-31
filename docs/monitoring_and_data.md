@@ -1,6 +1,6 @@
 # 시스템 모니터 기능 설계
 
-> 기준일: 2026-09-13 · 공용 계약: `patrol_interfaces 2.0.0`
+> 기준일: 2026-09-13 · 공용 계약: `patrol_interfaces 2.1.0`
 >
 > 담당: 시스템 모니터 팀 · 통합 실행 위치: PC 3
 
@@ -15,9 +15,10 @@
 |---|---|---|
 | `/system_monitor/report_detection` | `patrol_interfaces/srv/ReportDetection` | 확정 사건과 증거 사진 저장 |
 
-Patrol Action의 상태와 결과를 화면에 표시할 수 있지만, 이를 위해 새로운 공용
-상태 메시지를 추가하지 않는다. 구체적인 Action 상태 소비 방법은 시스템 모니터
-구현 범위에서 정한다.
+표시용으로는 새 공용 메시지 없이 기존 토픽을 구독한다: 로봇별 Patrol Action
+피드백·상태(`/{robot}/patrol_action/_action/feedback`, `.../status`), `battery_state`,
+`/control/estop`, CCTV `CameraState`와 `patrol_allowed`, 압축 영상, 지도와 costmap.
+자세한 목록은 [시스템 모니터 README](../src/patrol_sysmon/README.md)를 따른다.
 
 ## 2. ReportDetection 처리
 
@@ -47,8 +48,7 @@ Response:
 - 시스템 모니터는 Patrol Goal, PatrolCommand, DriveToken, EStop을 발행하지 않는다.
 - Dashboard는 읽기 전용이다.
 
-`DetectionEvidence`는 공용 타입으로 존재하지만 전용 토픽은 확정하지 않았다.
-기본 감지 저장 경로에서는 `ReportDetection.image`를 사용한다.
+증거 사진은 `ReportDetection.image`로 받는다.
 
 ## 4. 논리 데이터 모델
 

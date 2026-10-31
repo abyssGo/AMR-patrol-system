@@ -1,0 +1,102 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="페이지-1" id="fwEb-rw9UC3s9S5SgSCV">
+    <mxGraphModel dx="-626" dy="2327" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c1I11yyadS07RuJwnTvx-10" edge="1" parent="1" source="VVDZHKIPmS-AHdIxD6On-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="c1I11yyadS07RuJwnTvx-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="VVDZHKIPmS-AHdIxD6On-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="vision_node" vertex="1">
+          <mxGeometry height="80" width="280" x="2820" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-6" edge="1" parent="1" source="c1I11yyadS07RuJwnTvx-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="VVDZHKIPmS-AHdIxD6On-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-1" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="/robot1/oakd/rgb/image_raw/compressed&lt;br&gt;format : jpeg&lt;br&gt;data : JPEG 바이트(압축 영상)&lt;br&gt;&lt;br&gt;/robot1/amcl_pose&lt;br&gt;pose.pose.position.x : float64, map 좌표 x&lt;br&gt;pose.pose.position.y : map 좌표 y" vertex="1">
+          <mxGeometry height="120" width="300" x="2810" y="-40" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-3" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="robot1" vertex="1">
+          <mxGeometry height="80" width="155" x="2882.5" y="-160" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-16" edge="1" parent="1" source="c1I11yyadS07RuJwnTvx-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="VVDZHKIPmS-AHdIxD6On-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2760" y="840.03" />
+              <mxPoint x="2760" y="240.02999999999997" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-5" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="시스템 모니터" vertex="1">
+          <mxGeometry height="80" width="155" x="2882.5" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-11" edge="1" parent="1" source="c1I11yyadS07RuJwnTvx-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="VVDZHKIPmS-AHdIxD6On-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3120" y="420" />
+              <mxPoint x="3120" y="240" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-12" edge="1" parent="1" source="c1I11yyadS07RuJwnTvx-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="c1I11yyadS07RuJwnTvx-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-8" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="주행중 이벤트를 식별하였는가?" vertex="1">
+          <mxGeometry height="120" width="240" x="2840" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-13" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="/system_monitor/report_detection (request)&lt;br&gt;robot_id : robot1&lt;br&gt;event_id : uuid4&lt;br&gt;detected_at : 이벤트 확정 시각&lt;br&gt;position.x, position.y : amcl_pose 기준 map 좌표&lt;br&gt;image : JPEG 바이트 (bbox + 이벤트명 + confidence 포함)&lt;br&gt;event_type : 1 FIRE / 2 LEAK / 3 OBSTACLE" vertex="1">
+          <mxGeometry height="120" width="340" x="2790" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-17" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="/system_monitor/report_detection (response)&lt;br&gt;status : 0 STORED / 1 DUPLICATE / 2 REJECTED&lt;br&gt;detail : 거부 사유 또는 빈 문자열" vertex="1">
+          <mxGeometry height="80" width="300" x="2610" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-18" edge="1" parent="1" source="c1I11yyadS07RuJwnTvx-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="c1I11yyadS07RuJwnTvx-27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-19" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="vision_node" vertex="1">
+          <mxGeometry height="80" width="280" x="3540" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-20" edge="1" parent="1" source="c1I11yyadS07RuJwnTvx-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="c1I11yyadS07RuJwnTvx-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-21" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="/robot6/oakd/rgb/image_raw/compressed&lt;br&gt;format : jpeg&lt;br&gt;data : JPEG 바이트(압축 영상)&lt;br&gt;&lt;br&gt;/robot6/amcl_pose&lt;br&gt;pose.pose.position.x : float64, map 좌표 x&lt;br&gt;pose.pose.position.y : map 좌표 y" vertex="1">
+          <mxGeometry height="120" width="300" x="3530" y="-40" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-22" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="robot6" vertex="1">
+          <mxGeometry height="80" width="155" x="3602.5" y="-160" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-23" edge="1" parent="1" source="c1I11yyadS07RuJwnTvx-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="c1I11yyadS07RuJwnTvx-19">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3480" y="840.03" />
+              <mxPoint x="3480" y="240.02999999999997" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-24" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="시스템 모니터" vertex="1">
+          <mxGeometry height="80" width="155" x="3602.5" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-25" edge="1" parent="1" source="c1I11yyadS07RuJwnTvx-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="c1I11yyadS07RuJwnTvx-19">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3840" y="420" />
+              <mxPoint x="3840" y="240" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-26" edge="1" parent="1" source="c1I11yyadS07RuJwnTvx-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="c1I11yyadS07RuJwnTvx-24">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-27" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="주행중 이벤트를 식별하였는가?" vertex="1">
+          <mxGeometry height="120" width="240" x="3560" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-28" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="/system_monitor/report_detection (request)&lt;br&gt;robot_id : robot6&lt;br&gt;event_id : uuid4&lt;br&gt;detected_at : 이벤트 확정 시각&lt;br&gt;position.x, position.y : amcl_pose 기준 map 좌표&lt;br&gt;image : JPEG 바이트 (bbox + 이벤트명 + confidence 포함)&lt;br&gt;event_type : 1 FIRE / 2 LEAK / 3 OBSTACLE" vertex="1">
+          <mxGeometry height="120" width="340" x="3510" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="c1I11yyadS07RuJwnTvx-29" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="/system_monitor/report_detection (response)&lt;br&gt;status : 0 STORED / 1 DUPLICATE / 2 REJECTED&lt;br&gt;detail : 거부 사유 또는 빈 문자열" vertex="1">
+          <mxGeometry height="80" width="300" x="3330" y="680" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

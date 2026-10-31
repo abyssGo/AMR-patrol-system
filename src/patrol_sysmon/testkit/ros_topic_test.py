@@ -194,10 +194,10 @@ def build_virtual_publisher(config):
             self._image_publishers = {
                 topic: self.create_publisher(CompressedImage, topic, qos["camera_frame"])
                 for topic in (
-                    "/robot1/oakd/image/compressed",
-                    "/robot6/oakd/image/compressed",
-                    "/vision/cctv/gate/image/compressed",
-                    "/vision/cctv/center/image/compressed",
+                    "/robot1/oakd/rgb/preview/image_raw/compressed",
+                    "/robot6/oakd/rgb/image_raw/compressed",
+                    "/vision/cctv/gate_image/compressed",
+                    "/vision/cctv/center_image/compressed",
                 )
             }
             self._costmap_publishers = {

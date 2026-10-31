@@ -1,6 +1,6 @@
 # 전체 시스템 구성
 
-상태: `patrol_interfaces 2.0.0` 최종 계약 반영 · 장비 통합 별도 · 관련: [인터페이스](interfaces.md), [통합](integration.md)
+> 기준일: 2026-09-13 · 계약: `patrol_interfaces 2.1.0` · 관련: [인터페이스](interfaces.md), [통합](integration.md)
 
 ## 1. 개발 단위와 실행 위치
 
@@ -8,7 +8,7 @@
 |---|---|---|
 | AMR | PC 1 | AMR1 제어: 센서, 임무, Nav2·AMCL, 로컬 안전, 배터리, 도킹, Detection·증적 |
 | AMR | PC 2 | AMR2 제어: PC 1과 공통 기능, AMR2 LiDAR 위치 검증 관련 역할 |
-| 관제 | PC 3 | Control Server, Patrol Action·명령·주행 권한 중재 |
+| 관제 | PC 3 | Control Server: 교대 순찰, Patrol Action·명령·주행 권한·EStop, 운영 서비스 |
 | 시스템 모니터 | PC 3 | 판단 결과 토픽 수신·표시, DB, 읽기 전용 Dashboard |
 | 비전 | PC 4 | gate_cam·center_cam, cam_master, CameraState·patrol_allowed |
 
@@ -25,7 +25,7 @@ PC 1·2의 역할과 TB4 내부 컴퓨터의 실제 프로세스 배치를 동�
 
 - 공통 관제 namespace는 /control, CCTV 비전 namespace는 /vision이다.
 - robot_id와 holder_robot_id는 robot1 또는 robot6을 사용한다. 화면 표시명을 메시지 식별자로 쓰지 않는다.
-- 매핑은 YAML로 관리할 계획이며 파일명·배포 위치는 TBD-ARCH-001이다.
+- 관제는 `robot_ids` 파라미터로, AMR 노드는 실행 namespace로 robot_id를 정한다.
 - ROS_DOMAIN_ID=6과 두 번째 로봇의 Onboard 서버 ID=6은 별개 설정이다.
 
 ## 3. 기능 연결
@@ -33,21 +33,25 @@ PC 1·2의 역할과 TB4 내부 컴퓨터의 실제 프로세스 배치를 동�
 ~~~mermaid
 flowchart LR
     V[PC4: CCTV / cam_master] -->|patrol_allowed| C[PC3: Control Server]
+    OP[운영자 터미널] -->|/control/* 서비스| C
     C -->|Patrol Action / PatrolCommand| M[PC1·2: mission_supervisor]
-    C -->|DriveToken| S[AMR: local_safety_supervisor]
-    E[향후 Safety Arbiter] -.->|예약 EStop| S
-    M -->|내부 Action| N
-    N -->|속도 명령 경로| S
+    C -->|DriveToken / EStop| S[AMR: local_safety_supervisor]
+    M -->|Nav2 · Create 3 Action| N[Nav2 / Create 3]
+    N -->|cmd_vel_safety_in| S
+    DV[AMR: vision_node_v2] -->|cmd_vel_yaw| S
+    M -->|DetectEvent| DV
     S -->|최종 cmd_vel| B[로봇 구동부]
     M -->|Patrol Feedback / Result| C
-    A[AMR 감지 확정 측] -->|ReportDetection| O[PC3: 모니터링·저장]
-    C -->|운영 판단 결과 / 경고 / 로그 토픽| O
+    DV -->|ReportDetection| O[PC3: 시스템 모니터]
+    C -.->|Action 상태 · EStop 구독| O
     O --> D[읽기 전용 Dashboard]
 ~~~
 
-Nav2와 로컬 감지에서 생기는 모든 주행 후보는 AMR 내부의 `local_safety_supervisor`를 통과한다. 최종 `/{robot}/cmd_vel`은 이 노드만 발행하며, 유효한 DriveToken이 없거나 만료되면 정지 출력을 사용한다. 내부 후보 토픽과 중재 방식은 공용 ROS 계약에 포함하지 않는다.
+Nav2와 로컬 감지에서 생기는 모든 주행 후보는 AMR 내부의 `local_safety_supervisor`를 통과한다. 최종 `/{robot}/cmd_vel`은 이 노드만 발행하며, 유효한 DriveToken이 없거나 만료되면, 또는 EStop이 걸리면 0 속도를 낸다.
 
-AMR 로컬 Detection은 OAK-D 입력에서 후보·정렬·확정을 처리하며 PC 4의 CCTV 차량 상태 파이프라인과 별개다. AMR 제어와 로컬 감지 구현 사이에는 별도 공용 Action을 두지 않는다. 관제는 `Patrol` Feedback으로 감지 진행·확정을 받고, 시스템 모니터는 `ReportDetection` Service로 확정 사건과 증거 사진을 저장한다.
+AMR 로컬 감지는 OAK-D 입력에서 후보·정렬·확정을 처리하며 PC 4의 CCTV 차량 상태 파이프라인과 별개다. `mission_supervisor`와 감지 노드 사이는 AMR 내부 Action `patrol_amr_interfaces/DetectEvent`로 연결한다. 관제는 `Patrol` Feedback으로 감지 진행·확정을 받고, 시스템 모니터는 `ReportDetection` Service로 확정 사건과 증거 사진을 저장한다.
+
+두 로봇은 같은 지도(`final_project_map`, 원점은 `robot1` 도크)를 쓴다. `robot1` 도크는 (0, 0), `robot6` 도크는 (0, −0.7)이다.
 
 ## 4. Discovery 구성
 
@@ -75,13 +79,13 @@ Discovery는 참여자 발견을 위한 기능이다. 발견 후 사용자 데�
 
 ## 6. 기동·운영 책임
 
-서버·장치·노드의 구체적인 실행 명령은 아직 작성하지 않는다. 기존 Onboard 서비스 유지, Offboard 서버 준비, AMR·비전·관제·시스템 모니터 참여자 기동, 토픽 송수신 및 안전 준비 확인의 단계로 검증한다. 상세 통합 절차는 [integration.md](integration.md)에 둔다.
+기동 순서와 확인 항목은 [integration.md](integration.md)에, 노드별 실행 명령은 [amr.md](amr.md)와 [control_server.md](control_server.md)에 둔다. 운영자 명령(순찰 시작·취소, 화재 보류 해제, EStop, 재개)은 PC 3 터미널에서 관제 ROS 서비스로 보낸다.
 
 ## TBD
 
 | ID | 미정 사항 | 담당·협의 | 완료 조건 |
 |---|---|---|---|
-| TBD-ARCH-001 | 실제 노드·프로세스 배치, TB4 생성 설정, YAML 위치, 참여자별 서버 목록 | AMR·관제·시스템 모니터·비전 | 배포 표와 실제 설정 대조, 내부·외부 토픽 송수신 확인 |
+| TBD-ARCH-001 | 실제 노드·프로세스 배치, TB4 생성 설정, 참여자별 서버 목록 | AMR·관제·시스템 모니터·비전 | 배포 표와 실제 설정 대조, 내부·외부 토픽 송수신 확인 |
 | TBD-ARCH-002 | 장비별 버전·서버 주소·NIC 및 실행 서비스 확인 | 각 단위 | 기존 환경을 조사한 배포 정보 확정 |
 
 구조 및 로봇 식별자는 이 문서의 설계 기준이다. 위 TBD는 실배포 세부 사항이며 구조 설계 자체의 미확정을 뜻하지 않는다.

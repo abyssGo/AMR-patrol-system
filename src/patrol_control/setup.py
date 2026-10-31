@@ -8,7 +8,7 @@ package_name = 'patrol_control'
 
 setup(
     name=package_name,
-    version='0.2.0',
+    version='0.3.0',
     packages=find_packages(exclude=['test']),
     data_files=[
         (
@@ -22,7 +22,7 @@ setup(
     zip_safe=True,
     maintainer='Control Team',
     maintainer_email='control@example.com',
-    description='Control Server for patrol_interfaces 2.0',
+    description='Control Server for patrol_interfaces 2.1',
     license='Apache-2.0',
     entry_points={
         'console_scripts': [

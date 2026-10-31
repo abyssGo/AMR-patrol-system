@@ -252,7 +252,8 @@ collision_monitor:
     base_frame_id: "base_link"
     odom_frame_id: "odom"
     cmd_vel_in_topic: "cmd_vel_smoothed"
-    cmd_vel_out_topic: "cmd_vel"
+    # local_safety_supervisor가 DriveToken이 유효할 때만 cmd_vel로 넘긴다 (설계도 01: 최종 주행 속도 통제)
+    cmd_vel_out_topic: "cmd_vel_safety_in"
     state_topic: "collision_monitor_state"
     transform_tolerance: 0.2
     source_timeout: 1.0

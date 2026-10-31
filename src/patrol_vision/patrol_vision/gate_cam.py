@@ -1,54 +1,70 @@
 #!/usr/bin/env python3
 """Gate CCTV 노드: 입구 차량 ENTERING/EXITED 판정 후 CameraState 발행."""
-import time
 from collections import deque
+from pathlib import Path
+import time
+
 import cv2
-import rclpy
-from rclpy.node import Node
-from ultralytics import YOLO
-from sensor_msgs.msg import CompressedImage
 from patrol_interfaces.msg import CameraState
 from patrol_vision.cam_common import (
-    CCTV_EVENT_QOS,
-    IMAGE_STREAM_QOS,
     build_event_id,
     build_source_session_id,
+    CCTV_EVENT_QOS,
+    IMAGE_STREAM_QOS,
     load_and_bump_restart_sequence,
 )
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import CompressedImage
+from ultralytics import YOLO
+
+# 개발 PC(hv-06)의 /home/hv-06/patrol 과 같은 위치: 사용자 홈 기준 ~/patrol
+MODEL_PATH = Path.home() / 'patrol' / 'data' / 'car_data' / 'car_best_v2.pt'
+STATE_DIR = Path.home() / 'patrol' / 'state'
+
 
 def crossed(prev_x, curr_x, line_x):
     # 이전 x좌표와 현재 x좌표 사이에 line_x가 끼어 있으면(양방향) 교차로 판정
     return (prev_x < line_x <= curr_x) or (prev_x > line_x >= curr_x)
 
+
 class GateCam(Node):
     def __init__(self):
         super().__init__('gate_cam')
 
-        self.publisher_ = self.create_publisher(CameraState, '/vision/cctv/gate_event', CCTV_EVENT_QOS)
+        self.publisher_ = self.create_publisher(
+            CameraState, '/vision/cctv/gate_event', CCTV_EVENT_QOS)
         self.image_publisher_ = self.create_publisher(                # 대시보드용 영상 스트림 발행자 생성
             CompressedImage, '/vision/cctv/gate_image/compressed', IMAGE_STREAM_QOS)
 
-        self.model = YOLO("/home/hv-06/patrol/data/car_data/car_best_v2.pt")  # YOLO 가중치 경로(설치된 실제 장비 기준)
+        # YOLO 가중치 경로(설치된 실제 장비 기준)
+        self.model = YOLO(str(MODEL_PATH))
         self.cap = cv2.VideoCapture(2, cv2.CAP_V4L2)                  # 게이트 카메라 장치 인덱스(설치 완료, 고정값)
         if not self.cap.isOpened():
             self.get_logger().error('camera_source=2 열기 실패')
 
         restart_sequence = load_and_bump_restart_sequence(            # 이번 실행의 재시작 순번
-            'gate_cam', "/home/hv-06/patrol/state")                   # camera_id / 카운터 파일 저장 폴더
-        self._source_session_id = build_source_session_id('gate_cam', restart_sequence)  # 이번 실행 세션 id
-        self._source_sequence = 0                                     # 이번 세션 내 이벤트 순번(0부터 시작, 발행 시 +1)
+            'gate_cam', str(STATE_DIR))                   # camera_id / 카운터 파일 저장 폴더
+        # 이번 실행 세션 id
+        self._source_session_id = build_source_session_id('gate_cam', restart_sequence)
+        # 이번 세션 내 이벤트 순번(0부터 시작, 발행 시 +1)
+        self._source_sequence = 0
         self.get_logger().info(f'gate_cam: source_session_id={self._source_session_id}')
 
         self._last_cx = None                                          # 직전 프레임의 차량 중심 x좌표
         self._crossing_history = deque(maxlen=2)                      # 최근 라인 교차 순서(L/R) 최대 2개
-        self._pending = None                                          # 확정 대기 중인 상태 {'state','side','confs','start_time'}
-        self._last_event_time = 0.0                                   # 마지막 이벤트 발행 시각(wall-clock, cooldown용)
+        # 확정 대기 중인 상태 {'state','side','confs','start_time'}
+        self._pending = None
+        # 마지막 이벤트 발행 시각(wall-clock, cooldown용)
+        self._last_event_time = 0.0
         self._last_state_text = 'WAITING'                             # 디버그 화면 표시용 현재 상태 문구
 
         self._last_ok_read_time = time.time()                         # 마지막으로 프레임 읽기에 성공한 시각
         self._camera_fault = False                                    # 카메라 장애 여부 플래그
-        self._image_frame_count = 0                                   # 영상 스트림 발행 주기 조절용(30Hz -> 10Hz)
-        self._last_annotated_frame = None                             # ROI 음영+판정선+박스+상태 텍스트가 그려진 최신 프레임(스트림용)
+        # 영상 스트림 발행 주기 조절용(30Hz -> 10Hz)
+        self._image_frame_count = 0
+        # ROI 음영+판정선+박스+상태 텍스트가 그려진 최신 프레임(스트림용)
+        self._last_annotated_frame = None
 
         self.create_timer(1.0 / 30.0, self._process_frame)            # 30Hz로 프레임 처리 반복
 
@@ -59,7 +75,8 @@ class GateCam(Node):
 
         if not ok:                                                    # 읽기 실패한 경우
             self.get_logger().warning('gate_cam: 프레임 읽기 실패')
-            if not self._camera_fault and now - self._last_ok_read_time >= 3.0:  # 3초 연속 실패 = 장애 판단 기준
+            # 3초 연속 실패 = 장애 판단 기준
+            if not self._camera_fault and now - self._last_ok_read_time >= 3.0:
                 self._camera_fault = True                             # 3초 연속 실패 시 장애로 확정
                 self.get_logger().error(
                     'gate_cam: 3초 연속 프레임 읽기 실패 - 카메라 장애로 판단')
@@ -81,10 +98,14 @@ class GateCam(Node):
     # ---- 탐지: 이번 프레임에서 conf가 가장 높은 박스 1개만 사용 ----
     def _detect_and_track(self, frame):
         h, w = frame.shape[:2]                                        # 프레임 크기
-        roi_top = h * 0.45                                            # 판정 영역 상단(프레임 높이의 45% 지점, 설치 기준 확정값)
-        roi_bottom = h * 0.95                                         # 판정 영역 하단(프레임 높이의 95% 지점, 설치 기준 확정값)
-        left_x = w * 0.32                                             # 왼쪽 판정선(프레임 폭의 32% 지점, 설치 기준 확정값)
-        right_x = w * 0.70                                            # 오른쪽 판정선(프레임 폭의 70% 지점, 설치 기준 확정값)
+        # 판정 영역 상단(프레임 높이의 45% 지점, 설치 기준 확정값)
+        roi_top = h * 0.45
+        # 판정 영역 하단(프레임 높이의 95% 지점, 설치 기준 확정값)
+        roi_bottom = h * 0.95
+        # 왼쪽 판정선(프레임 폭의 32% 지점, 설치 기준 확정값)
+        left_x = w * 0.32
+        # 오른쪽 판정선(프레임 폭의 70% 지점, 설치 기준 확정값)
+        right_x = w * 0.70
 
         results = self.model.predict(                                 # YOLO 추론 실행
             frame,
@@ -151,8 +172,10 @@ class GateCam(Node):
                 self._pending['confs'].append(conf)                   # 평균 계산용 conf 누적
                 elapsed = now - self._pending['start_time']            # 대기 시작 후 경과 시간
                 self._last_state_text = self._pending['state']         # 확정 대기 중에도 목표 상태 표시
-                if elapsed >= 0.2:                                     # 0.2초(CONFIRM_SECONDS) 다 채웠으면 확정 발행
-                    avg_conf = sum(self._pending['confs']) / len(self._pending['confs'])  # 구간 평균 conf
+                # 0.2초(CONFIRM_SECONDS) 다 채웠으면 확정 발행
+                if elapsed >= 0.2:
+                    # 구간 평균 conf
+                    avg_conf = sum(self._pending['confs']) / len(self._pending['confs'])
                     self._publish_state(self._pending['state'], avg_conf)  # 이벤트 발행
                     self._last_event_time = time.time()                # cooldown 기준 시각 갱신
                     self._last_state_text = self._pending['state']
@@ -171,7 +194,8 @@ class GateCam(Node):
             return
 
         wall_now = time.time()
-        if wall_now - self._last_event_time < 2.0:                     # 방금 이벤트 쐈으면(쿨다운 2.0초 중) 새 판정 시작 안 함
+        # 방금 이벤트 쐈으면(쿨다운 2.0초 중) 새 판정 시작 안 함
+        if wall_now - self._last_event_time < 2.0:
             return
 
         # 이번 프레임에서 왼쪽/오른쪽 선을 넘었으면 순서대로 기록해둔다(deque maxlen=2라
@@ -187,12 +211,15 @@ class GateCam(Node):
             # 안정적으로 머무는지 확인하는 대기 상태(self._pending)를 시작한다.
             # (다음 프레임부터는 위쪽 "[갈래 1]"이 실행돼서 이 코드는 다시 안 타게 된다.)
             if seq[-2:] == ['L', 'R']:                                 # 왼쪽→오른쪽 순서 완성 = 입차 방향
-                self._pending = {'state': 'ENTERING', 'side': 'right', 'confs': [conf], 'start_time': now}
+                self._pending = {'state': 'ENTERING', 'side': 'right',
+                                 'confs': [conf], 'start_time': now}
             elif seq[-2:] == ['R', 'L']:                               # 오른쪽→왼쪽 순서 완성 = 출차 방향
-                self._pending = {'state': 'EXITED', 'side': 'left', 'confs': [conf], 'start_time': now}
+                self._pending = {'state': 'EXITED', 'side': 'left',
+                                 'confs': [conf], 'start_time': now}
 
     def _publish_state(self, state: str, confidence: float):
-        state_map = {                                                  # 문자열 상태 -> CameraState enum 값 변환표
+        # 문자열 상태 -> CameraState enum 값 변환표
+        state_map = {
             'ENTERING': CameraState.STATE_ENTERING,
             'EXITED': CameraState.STATE_EXITED,
         }
@@ -230,11 +257,16 @@ class GateCam(Node):
     def _debug_draw(self, frame, left_x, right_x, roi_top, roi_bottom, best_box, best_conf):
         annotated = frame.copy()                                      # 원본 보존을 위해 복사본에 그림
         overlay = annotated.copy()
-        cv2.rectangle(overlay, (0, int(roi_top)), (frame.shape[1], int(roi_bottom)), (70, 70, 70), -1)
+        cv2.rectangle(overlay, (0, int(roi_top)), (frame.shape[1], int(roi_bottom)),
+                      (70, 70, 70), -1)
         annotated = cv2.addWeighted(overlay, 0.18, annotated, 0.82, 0)  # 판정 영역 반투명 표시
 
-        cv2.line(annotated, (int(left_x), int(roi_top)), (int(left_x), int(roi_bottom)), (255, 0, 0), 2)   # 왼쪽 라인
-        cv2.line(annotated, (int(right_x), int(roi_top)), (int(right_x), int(roi_bottom)), (0, 255, 255), 2)  # 오른쪽 라인
+        # 왼쪽 라인
+        cv2.line(annotated, (int(left_x), int(roi_top)), (int(left_x), int(roi_bottom)),
+                 (255, 0, 0), 2)
+        # 오른쪽 라인
+        cv2.line(annotated, (int(right_x), int(roi_top)), (int(right_x), int(roi_bottom)),
+                 (0, 255, 255), 2)
 
         if best_box is not None:                                      # 탐지된 차량 박스가 있으면 표시
             x1, y1, x2, y2 = best_box
@@ -249,6 +281,7 @@ class GateCam(Node):
         cv2.imshow('gate_cam', annotated)                             # 화면에 표시
         cv2.waitKey(1)
 
+
 def main():
     rclpy.init()                                                      # ROS2 초기화
     node = GateCam()                                                  # 노드 생성
@@ -259,6 +292,7 @@ def main():
         cv2.destroyAllWindows()                                       # 디버그 창 정리
         node.destroy_node()                                           # ROS2 노드 정리
         rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

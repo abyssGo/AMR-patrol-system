@@ -1,0 +1,29 @@
+# 순찰 현장 좌표 (지도 maps/final_project_map.yaml 의 map 좌표, 단위 m)
+# dir: TurtleBot4Directions 이름(NORTH, NORTH_WEST, WEST, SOUTH_WEST, SOUTH, SOUTH_EAST, EAST, NORTH_EAST)
+# 현장이나 지도가 바뀌면 이 파일만 고친다. 다른 파일을 쓰려면 mission_supervisor의 site_file 파라미터로 지정한다.
+
+# 순찰 경로: 순서대로 이동하고, 각 경유지에서 제자리 360° 회전한다.
+route:
+  - {id: WP1, x: -0.206, y: -1.038, dir: WEST}
+  - {id: WP2, x: -1.147, y: 0.500, dir: SOUTH}
+  - {id: WP3, x: -2.029, y: -0.916, dir: EAST}
+  - {id: WP4, x: -2.751, y: -2.422, dir: SOUTH}
+  - {id: WP5, x: -4.389, y: -1.122, dir: WEST}
+  - {id: WP6, x: -2.909, y: 0.575, dir: NORTH}
+  - {id: WP3, x: -2.029, y: -0.916, dir: EAST}
+  - {id: WP7, x: -1.374, y: -2.439, dir: NORTH}
+
+# 로봇별 도크 앞(귀환점 · 도킹 실패 시 대기 위치)과 언도킹 직후 초기 위치 방향.
+# robot1 도크가 지도 원점이고, robot6 도크는 같은 벽을 따라 0.7 m 옆이다.
+docks:
+  robot1: {x: 0.0, y: 0.0, dir: NORTH, initial_dir: SOUTH}
+  robot6: {x: 0.0, y: -0.7, dir: NORTH, initial_dir: SOUTH}
+
+# 안전구역: 차량이 움직이는 동안 가장 가까운 곳으로 가서 기다린다. [x, y, yaw(도)]
+safe_zones:
+  1: [-0.206, -1.038, 90.8]
+  2: [-1.147, 0.500, 175.4]
+  4: [-2.751, -2.422, 182.4]
+  5: [-4.389, -1.122, 94.3]
+  6: [-2.909, 0.575, 358.3]
+  7: [-1.374, -2.439, 359.8]

@@ -8,21 +8,20 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  # patrol_interfaces 2.0.0: 기본 순찰 시나리오의 최소 공용 계약.
+  # patrol_interfaces 2.1.0: 2.0.0 계약 + SetEStop.srv, Patrol REASON_LOW_BATTERY,
+  # 사용하지 않는 DetectionEvidence·MissionExecutionEvent 제거.
   "action/Patrol.action"
   "msg/PatrolCommand.msg"
   "msg/DriveToken.msg"
   "msg/EStop.msg"
   "msg/CameraState.msg"
-  "msg/DetectionEvidence.msg"
-  "msg/MissionExecutionEvent.msg"
   "srv/ReportDetection.srv"
-  DEPENDENCIES std_msgs sensor_msgs geometry_msgs builtin_interfaces
+  "srv/SetEStop.srv"
+  DEPENDENCIES std_msgs geometry_msgs builtin_interfaces
 )
 
 ament_export_dependencies(rosidl_default_runtime)

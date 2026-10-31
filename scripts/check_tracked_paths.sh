@@ -10,8 +10,8 @@
 set -euo pipefail
 
 REQUIRED_PATHS=(
-    "tests"
-    "src/patrol_amr/patrol_amr"
+    "src/patrol_amr_safety/test"
+    "src/patrol_control/test"
     "src/patrol_interfaces/msg"
     "docs"
 )

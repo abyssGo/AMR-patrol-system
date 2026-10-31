@@ -1,0 +1,25 @@
+# AMR 내부 계약: mission_supervisor -> 감지 노드(vision_node_v2).
+# 공용 계약(patrol_interfaces 2.0.0)이 아니며 다른 PC는 사용하지 않는다.
+# detection_id는 Patrol Feedback.event_id 및 ReportDetection.event_id와 같은 UUID v4다.
+
+# Goal
+string detection_id
+uint8 event_type
+float32 min_confidence
+---
+# Result
+bool confirmed
+string robot_id
+geometry_msgs/PoseStamped current_pose
+uint8 event_type
+float32 average_confidence
+builtin_interfaces/Time event_time
+---
+# Feedback
+uint8 ALIGNING=1
+uint8 VERIFYING=2
+
+uint8 state
+float32 confirm_elapsed
+float32 current_confidence
+float32 average_confidence

@@ -4,7 +4,7 @@
 - 최초 작성 시각: 2026-09-08 23:02 KST
 - 요청자·요청 단위: AMR
 - 대상 단위 및 로봇: AMR robot1·robot6, 관제, System monitor
-- 관련 TBD ID: 신규 공용 계약 없음. 로컬 판단 주체는 [flowchart 3.2절](../amr_patrol_safety_flowchart.md#32-local_safety_supervisorpy)의 미정 사항을 이번 결정으로 해소한다.
+- 관련 TBD ID: 신규 공용 계약 없음. 로컬 판단 주체는 flowchart 3.2절(`amr_patrol_safety_flowchart.md`, 현재 삭제됨)의 미정 사항을 이번 결정으로 해소한다.
 - 기준: [interfaces.md 3·4절](../interfaces.md), [관제 v1.0](../decisions/2026-09-08-control-interface-baseline.md)
 - 결정 일자·근거: 2026-09-08 사용자 답변 `local_safety_supervisor가 odom으로 판단`
 - 코드 변경 승인: 사용자 요청의 `patrol_amr_safety` 코드 완성 범위 및 위 판단 주체 결정. 타 담당 코드 수정은 포함하지 않는다.

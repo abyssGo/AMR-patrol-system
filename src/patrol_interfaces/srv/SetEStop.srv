@@ -1,0 +1,9 @@
+# 운영자 터미널 -> 관제 Safety Arbiter (/control/set_estop).
+# 관제가 요청을 /control/estop(EStop)으로 발행한다. 해제(active=false)만으로 AMR은
+# 다시 움직이지 않으며, 운영자의 /control/resume 명령이 따로 필요하다.
+string target_robot_id   # robot1 / robot6 / all
+bool active
+uint8 reason             # 0~6, EStop.msg 주석의 reason 표와 같음
+---
+bool success
+string message

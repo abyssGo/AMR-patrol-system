@@ -1,0 +1,135 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="페이지-1" id="wdMTTRzw72ZrsEhZ-erW">
+    <mxGraphModel dx="3610" dy="1738" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-62" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="700" width="1080" x="-200" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-5" edge="1" parent="1" source="ybUuJmyNHt1aOQ0gw2xm-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ybUuJmyNHt1aOQ0gw2xm-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="Gate&lt;br&gt;Camera" vertex="1">
+          <mxGeometry height="80" width="120" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-6" edge="1" parent="1" source="ybUuJmyNHt1aOQ0gw2xm-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="ybUuJmyNHt1aOQ0gw2xm-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="Center&lt;br&gt;Camera" vertex="1">
+          <mxGeometry height="80" width="120" x="560" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-30" edge="1" parent="1" source="ybUuJmyNHt1aOQ0gw2xm-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ybUuJmyNHt1aOQ0gw2xm-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-64" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ybUuJmyNHt1aOQ0gw2xm-25">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="60" y="580" />
+              <mxPoint x="850" y="580" />
+              <mxPoint x="850" y="440" />
+            </Array>
+            <mxPoint x="60" y="610" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="gate_cam Node" vertex="1">
+          <mxGeometry height="60" width="200" x="-40.14" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-10" edge="1" parent="1" source="ybUuJmyNHt1aOQ0gw2xm-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="ybUuJmyNHt1aOQ0gw2xm-7">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="590" y="610" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-58" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ybUuJmyNHt1aOQ0gw2xm-24">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="620" y="550" />
+              <mxPoint x="830" y="550" />
+              <mxPoint x="830" y="290" />
+            </Array>
+            <mxPoint x="620" y="600" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Center_cam Node" vertex="1">
+          <mxGeometry height="60" width="200" x="520" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-65" edge="1" parent="1" source="ybUuJmyNHt1aOQ0gw2xm-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ybUuJmyNHt1aOQ0gw2xm-27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="cam_master Node" vertex="1">
+          <mxGeometry height="60" width="200" x="240" y="784" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-22" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;font-size: 28px;&quot;&gt;PC 4&lt;/font&gt;" vertex="1">
+          <mxGeometry height="40" width="120" x="280" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-24" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="시스템 모니터" vertex="1">
+          <mxGeometry height="80" width="120" x="1290" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-25" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="시스템 모니터" vertex="1">
+          <mxGeometry height="80" width="120" x="1290" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-27" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="관제 노드" vertex="1">
+          <mxGeometry height="80" width="120" x="280" y="1064" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-48" edge="1" parent="1" source="ybUuJmyNHt1aOQ0gw2xm-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="ybUuJmyNHt1aOQ0gw2xm-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-130.1" y="290" />
+            </Array>
+            <mxPoint x="-299.8600000000001" y="520" as="sourcePoint" />
+            <mxPoint x="-260" y="290" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-60" edge="1" parent="1" source="ybUuJmyNHt1aOQ0gw2xm-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="ybUuJmyNHt1aOQ0gw2xm-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-28" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="차가 지나갔는가?&lt;br&gt;ENTERING : 출입구 -&amp;gt; 주차장&lt;br&gt;EXITED : 주차장 출입구" vertex="1">
+          <mxGeometry height="100" width="380" x="-130.14" y="391" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-33" edge="1" parent="1" source="ybUuJmyNHt1aOQ0gw2xm-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="ybUuJmyNHt1aOQ0gw2xm-32" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="620" y="320" as="sourcePoint" />
+            <mxPoint x="514" y="740" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-49" edge="1" parent="1" source="ybUuJmyNHt1aOQ0gw2xm-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ybUuJmyNHt1aOQ0gw2xm-4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="430" y="290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-32" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="주정차를 판단했는가?&lt;br&gt;PARKED&amp;nbsp; : 주차구역 진입후 5초 이상 정지&lt;br&gt;EXITING : 주차구역에서 차량이 나옴" vertex="1">
+          <mxGeometry height="100" width="380" x="430" y="391" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-36" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="/vision/cctv/gate_event&lt;br&gt;header.stamp: 판정 시각&lt;div&gt;event_id: cam-&amp;lt;source_session_id&amp;gt;-&amp;lt;state소문자&amp;gt;-&amp;lt;source_sequence&amp;gt;&lt;br&gt;camera_id: gate_cam&lt;br&gt;source_session_id: gate_cam-&amp;lt;YYYYMMDDTHHMMSS&amp;gt;-&amp;lt;restart_sequence&amp;gt;&lt;br&gt;source_sequence: uint61, 1부터 누적 증가&lt;br&gt;state: ENTERING(1)/EXITED(2)&lt;br&gt;confidence: float32, 0.0~1.0, 0.2초 구간 평균&lt;/div&gt;" vertex="1">
+          <mxGeometry height="135" width="460" x="-170.14" y="633" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-41" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="/vision/cctv/center_event&lt;br&gt;header.stamp: 판정 시각&lt;div&gt;event_id: cam-&amp;lt;source_session_id&amp;gt;-&amp;lt;state소문자&amp;gt;-&amp;lt;source_sequence&amp;gt;&lt;br&gt;camera_id: center_cam&lt;br&gt;source_session_id: center_cam-&amp;lt;YYYYMMDDTHHMMSS&amp;gt;-&amp;lt;restart_sequence&amp;gt;&lt;br&gt;source_sequence: uint64, 1부터 누적 증가&lt;br&gt;state: PARKED(3)/EXITING(4)&lt;br&gt;confidence: float32, 0.0~1.0, 0.2초 구간 평균&lt;/div&gt;" vertex="1">
+          <mxGeometry height="135" width="460" x="390" y="633" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-55" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="/vision/cctv/center_image/compressed&lt;br&gt;header.stamp: 촬영 시각&lt;br&gt;format: jpeg&lt;br&gt;data: JPEG 바이트, 640x480,&amp;nbsp;≈10Hz" vertex="1">
+          <mxGeometry height="80" width="290" x="920" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-53" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="/vision/cctv/patrol_allowed&lt;br&gt;data: true / false" vertex="1">
+          <mxGeometry height="60" width="210" x="235" y="943" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-54" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="/vision/cctv/gate_image/compressed&lt;br&gt;header.stamp: 촬영 시각&lt;br&gt;format: jpeg&lt;br&gt;data: JPEG 바이트, 640x480,&amp;nbsp;≈10Hz" vertex="1">
+          <mxGeometry height="80" width="290" x="920" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-66" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Yes" vertex="1">
+          <mxGeometry height="30" width="60" x="620" y="491" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-67" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Yes" vertex="1">
+          <mxGeometry height="30" width="60" x="60" y="491" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-69" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="No" vertex="1">
+          <mxGeometry height="30" width="60" x="-190.14" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="ybUuJmyNHt1aOQ0gw2xm-70" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="No" vertex="1">
+          <mxGeometry height="30" width="60" x="370" y="410" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

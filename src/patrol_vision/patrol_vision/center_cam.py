@@ -1,29 +1,38 @@
 #!/usr/bin/env python3
 """Center CCTV 노드: 주차 구역 PARKED/EXITING 판정 후 CameraState 발행."""
+from pathlib import Path
 import time
+
 import cv2
-import rclpy
-from rclpy.node import Node
-from ultralytics import YOLO
-from sensor_msgs.msg import CompressedImage
 from patrol_interfaces.msg import CameraState
 from patrol_vision.cam_common import (
-    CCTV_EVENT_QOS,
-    IMAGE_STREAM_QOS,
     build_event_id,
     build_source_session_id,
+    CCTV_EVENT_QOS,
+    IMAGE_STREAM_QOS,
     load_and_bump_restart_sequence,
 )
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import CompressedImage
+from ultralytics import YOLO
+
+# 개발 PC(hv-06)의 /home/hv-06/patrol 과 같은 위치: 사용자 홈 기준 ~/patrol
+MODEL_PATH = Path.home() / 'patrol' / 'data' / 'car_data' / 'car_best_v2.pt'
+STATE_DIR = Path.home() / 'patrol' / 'state'
+
 
 def ratio_to_pixel_rect(rect, w, h):
     # (x1,y1,x2,y2) 비율 좌표를 실제 프레임 픽셀 좌표로 변환
     x1, y1, x2, y2 = rect
     return x1 * w, y1 * h, x2 * w, y2 * h
 
+
 def is_inside_rect(x, y, rect):
     # 점 (x,y)가 사각형 rect 안에 있는지 판정
     x1, y1, x2, y2 = rect
     return x1 <= x <= x2 and y1 <= y <= y2
+
 
 def get_current_roi(cx, cy, roi_dict):
     # 여러 ROI 중 점이 속한 ROI 이름 반환, 없으면 None
@@ -32,38 +41,47 @@ def get_current_roi(cx, cy, roi_dict):
             return roi_name
     return None
 
+
 class CenterCam(Node):
     def __init__(self):
         super().__init__('center_cam')
 
-        self.publisher_ = self.create_publisher(CameraState, '/vision/cctv/center_event', CCTV_EVENT_QOS)
+        self.publisher_ = self.create_publisher(
+            CameraState, '/vision/cctv/center_event', CCTV_EVENT_QOS)
         self.image_publisher_ = self.create_publisher(                 # 대시보드용 영상 스트림 발행자 생성
             CompressedImage, '/vision/cctv/center_image/compressed', IMAGE_STREAM_QOS)
 
-        self.model = YOLO("/home/hv-06/patrol/data/car_data/car_best_v2.pt")   # YOLO 가중치 경로(설치된 실제 장비 기준)
+        # YOLO 가중치 경로(설치된 실제 장비 기준)
+        self.model = YOLO(str(MODEL_PATH))
         self.cap = cv2.VideoCapture(4, cv2.CAP_V4L2)                   # 센터 카메라 장치 인덱스(설치 완료, 고정값)
         if not self.cap.isOpened():
             self.get_logger().error('camera_source=4 열기 실패')
 
         restart_sequence = load_and_bump_restart_sequence(             # 이번 실행의 재시작 순번
-            'center_cam', "/home/hv-06/patrol/state")                  # camera_id / 카운터 파일 저장 폴더
-        self._source_session_id = build_source_session_id('center_cam', restart_sequence)  # 이번 실행 세션 id
-        self._source_sequence = 0                                      # 이번 세션 내 이벤트 순번(0부터 시작, 발행 시 +1)
+            'center_cam', str(STATE_DIR))                  # camera_id / 카운터 파일 저장 폴더
+        # 이번 실행 세션 id
+        self._source_session_id = build_source_session_id('center_cam', restart_sequence)
+        # 이번 세션 내 이벤트 순번(0부터 시작, 발행 시 +1)
+        self._source_sequence = 0
         self.get_logger().info(f'center_cam: source_session_id={self._source_session_id}')
 
         self._current_roi = None                                       # 현재 차량이 있는 ROI 이름(없으면 None)
         self._roi_enter_time = None                                    # 현재 ROI에 진입한 시각(wall-clock)
-        self._confs_in_roi = []                                        # [(monotonic_ts, conf), ...] 체류 중 conf 기록
+        # [(monotonic_ts, conf), ...] 체류 중 conf 기록
+        self._confs_in_roi = []
         self._parked_confirmed = False                                 # 이번 체류에서 PARKED를 이미 발행했는지
-        self._exit_confirm_start = None                                # EXITING 확인 시작 시각(monotonic)
+        # EXITING 확인 시작 시각(monotonic)
+        self._exit_confirm_start = None
         self._exit_confirm_confs = []                                  # EXITING 확인 구간의 conf 목록
         self._last_event_time = 0.0                                    # 마지막 이벤트 발행 시각(cooldown 기준)
         self._last_state_text = 'WAITING'                              # 디버그 화면 표시용 현재 상태 문구
 
         self._last_ok_read_time = time.time()                          # 마지막으로 프레임 읽기에 성공한 시각
         self._camera_fault = False                                     # 카메라 장애 여부 플래그
-        self._image_frame_count = 0                                    # 영상 스트림 발행 주기 조절용(30Hz -> 10Hz)
-        self._last_annotated_frame = None                              # ROI 음영+박스+상태 텍스트가 그려진 최신 프레임(스트림용)
+        # 영상 스트림 발행 주기 조절용(30Hz -> 10Hz)
+        self._image_frame_count = 0
+        # ROI 음영+박스+상태 텍스트가 그려진 최신 프레임(스트림용)
+        self._last_annotated_frame = None
 
         self.create_timer(1.0 / 30.0, self._process_frame)             # 30Hz로 프레임 처리 반복
 
@@ -74,7 +92,8 @@ class CenterCam(Node):
 
         if not ok:                                                     # 읽기 실패한 경우
             self.get_logger().warning('center_cam: 프레임 읽기 실패')
-            if not self._camera_fault and now - self._last_ok_read_time >= 3.0:  # 3초 연속 실패 = 장애 판단 기준
+            # 3초 연속 실패 = 장애 판단 기준
+            if not self._camera_fault and now - self._last_ok_read_time >= 3.0:
                 self._camera_fault = True                              # 3초 연속 실패 시 장애로 확정
                 self.get_logger().error(
                     'center_cam: 3초 연속 프레임 읽기 실패 - 카메라 장애로 판단')
@@ -117,7 +136,8 @@ class CenterCam(Node):
             boxes = result.boxes.xyxy.cpu().numpy()                    # 박스 좌표 배열
             confs = result.boxes.conf.cpu().numpy()                    # 박스별 conf 배열
             for box, conf in zip(boxes, confs):
-                if conf > best_conf:                                   # conf 최고값 갱신(ROI 필터 없이 전체 중 최고)
+                # conf 최고값 갱신(ROI 필터 없이 전체 중 최고)
+                if conf > best_conf:
                     x1, y1, x2, y2 = box
                     best_conf = float(conf)
                     best_cx = (x1 + x2) / 2
@@ -173,7 +193,8 @@ class CenterCam(Node):
             # 체류 5초를 채웠고, 아직 이번 체류에서 PARKED를 발행한 적 없고, cooldown도
             # 지났으면 -> 지금이 바로 PARKED 확정 시점이다.
             if (not self._parked_confirmed                             # 아직 PARKED 미확정이고
-                    and stay_time >= 5.0                               # 5.0초(PARKED_SECONDS) 이상 체류했고
+                    # 5.0초(PARKED_SECONDS) 이상 체류했고
+                    and stay_time >= 5.0
                     and now_wall - self._last_event_time >= 2.0):      # 쿨다운(2.0초)도 지났으면
                 window = [c for t, c in self._confs_in_roi if now_mono - t <= 0.2]  # 마지막 0.2초 구간
                 if not window:
@@ -210,7 +231,8 @@ class CenterCam(Node):
 
         elapsed = now_mono - self._exit_confirm_start                  # 확인 시작 후 경과 시간
         self._last_state_text = 'EXITING'
-        if elapsed >= 0.2:                                             # 0.2초(CONFIRM_SECONDS) 이상 유지되면 확정
+        # 0.2초(CONFIRM_SECONDS) 이상 유지되면 확정
+        if elapsed >= 0.2:
             if now_wall - self._last_event_time >= 2.0:                # 쿨다운(2.0초) 지났을 때만 실제 발행
                 avg_conf = sum(self._exit_confirm_confs) / len(self._exit_confirm_confs)
                 self._publish_state('EXITING', avg_conf)
@@ -225,7 +247,8 @@ class CenterCam(Node):
             self._exit_confirm_confs = []
 
     def _publish_state(self, state: str, confidence: float):
-        state_map = {                                                  # 문자열 상태 -> CameraState enum 값 변환표
+        # 문자열 상태 -> CameraState enum 값 변환표
+        state_map = {
             'PARKED': CameraState.STATE_PARKED,
             'EXITING': CameraState.STATE_EXITING,
         }
@@ -282,6 +305,7 @@ class CenterCam(Node):
         cv2.imshow('center_cam', annotated)                             # 화면에 표시
         cv2.waitKey(1)
 
+
 def main():
     rclpy.init()                                                        # ROS2 초기화
     node = CenterCam()                                                  # 노드 생성
@@ -292,6 +316,7 @@ def main():
         cv2.destroyAllWindows()                                         # 디버그 창 정리
         node.destroy_node()                                             # ROS2 노드 정리
         rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

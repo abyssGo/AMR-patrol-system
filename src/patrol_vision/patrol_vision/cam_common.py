@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""gate_cam.py / center_cam.py 공통 유틸리티"""
-import os
+"""gate_cam.py / center_cam.py 공통 유틸리티."""
 from datetime import datetime
+import os
+
 from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy
 
 # CCTV 이벤트 QoS: 신뢰성 있는 전달, 최근 20개까지 버퍼링(interfaces.md 9절)
@@ -22,6 +23,7 @@ IMAGE_STREAM_QOS = QoSProfile(
     history=HistoryPolicy.KEEP_LAST,            # 최근 depth개만 큐에 유지
     depth=1,                                    # 항상 최신 프레임 1개만
 )
+
 
 def load_and_bump_restart_sequence(camera_id: str, state_dir: str) -> int:
     # 노드가 뜰 때마다 이 함수가 1번 호출되어, 로컬 파일에 저장된 숫자를 읽어서 +1 하고
@@ -49,13 +51,16 @@ def load_and_bump_restart_sequence(camera_id: str, state_dir: str) -> int:
         pass
     return seq
 
-def build_source_session_id(camera_id: str, restart_sequence: int, started_at: datetime = None) -> str:
+
+def build_source_session_id(camera_id: str, restart_sequence: int,
+                            started_at: datetime = None) -> str:
     # camera_id + 시작 시각 + 재시작 순번을 합쳐서, "이번에 이 노드가 실행되는 동안"을
     # 대표하는 고유 문자열을 만든다. 노드가 켜져 있는 동안은 이 값이 바뀌지 않고,
     # 재시작하면 restart_sequence가 달라지므로 새 값이 나온다.
     # 예: gate_cam-20260907T170000-01 / center_cam-20260907T170000-01
     started_at = started_at or datetime.now()
-    return f'{camera_id}-{started_at.strftime("%Y%m%dT%H%M%S")}-{restart_sequence:02d}'
+    return f"{camera_id}-{started_at.strftime('%Y%m%dT%H%M%S')}-{restart_sequence:02d}"
+
 
 def build_event_id(source_session_id: str, state: str, source_sequence: int) -> str:
     # 위에서 만든 세션id에 이번 이벤트의 state와 세션 내 순번을 붙여서 최종 event_id를

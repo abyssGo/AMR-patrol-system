@@ -1,35 +1,32 @@
 from setuptools import setup
 
-package_name = "patrol_amr_safety"
+package_name = 'patrol_amr_safety'
 
 setup(
     name=package_name,
-    version="0.0.1",
+    version='0.1.0',
     packages=[package_name],
     data_files=[
-        ("share/ament_index/resource_index/packages",
-         ["resource/" + package_name]),
-        ("share/" + package_name, ["package.xml"]),
-        ("share/" + package_name + "/launch",
-         ["launch/amr_safety_status.launch.py"]),
+        ('share/ament_index/resource_index/packages',
+         ['resource/' + package_name]),
+        ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/launch',
+         ['launch/amr.launch.py']),
+        ('share/' + package_name + '/config',
+         ['config/site.yaml']),
     ],
-    install_requires=["setuptools"],
+    install_requires=['setuptools'],
     zip_safe=True,
-    maintainer="조정묵",
-    maintainer_email="kj270477@gmail.com",
-    description="AMR local safety, status and command-identity nodes",
-    license="Apache-2.0",
+    maintainer='조정묵',
+    maintainer_email='kj270477@gmail.com',
+    description='AMR local safety, status and command-identity nodes',
+    license='Apache-2.0',
     entry_points={
-        "console_scripts": [
-            "event_check = patrol_amr_safety.event_check:main",
-            "genius_patrol = patrol_amr_safety.genius_patrol:main",
-            "vision_node_v2 = patrol_amr_safety.vision_node_v2:main",
-            "battery_monitor = patrol_amr_safety.battery_monitor:main",
-            "command_gateway = patrol_amr_safety.command_gateway:main",
-            "local_safety_supervisor = "
-            "patrol_amr_safety.local_safety_supervisor:main",
-            "status_reporter = patrol_amr_safety.status_reporter:main",
-            "3_1_c_follow_waypoints = patrol_amr_safety.3_1_c_follow_waypoints:main"
+        'console_scripts': [
+            'vision_node_v2 = patrol_amr_safety.vision_node_v2:main',
+            'mission_supervisor = patrol_amr_safety.mission_supervisor:main',
+            'local_safety_supervisor = '
+            'patrol_amr_safety.local_safety_supervisor:main',
         ],
     },
 )

@@ -46,9 +46,7 @@ def generate_launch_description():
 
     map_arg = DeclareLaunchArgument(
         'map',
-        default_value=PathJoinSubstitution(
-            [pkg_turtlebot4_navigation, 'maps', 'warehouse.yaml']),
-        description='Full path to map yaml file to load')
+        description='Full path to map yaml file to load (maps/final_project_map.yaml)')
 
     namespace = LaunchConfiguration('namespace')
     use_sim_time = LaunchConfiguration('use_sim_time')

@@ -1,140 +1,135 @@
 # 시스템 통합과 시험
 
-> 기준일: 2026-09-13 · 계약: `patrol_interfaces 2.0.0`
+> 기준일: 2026-09-13 · 계약: `patrol_interfaces 2.1.0`
 
-이 문서는 최종 공용 인터페이스의 통합 순서와 합격 조건을 정의한다. 개별 팀의
-단위시험 통과만으로 종단 통합이 완료됐다고 판단하지 않는다.
+통합 순서와 합격 조건을 정한다. 각 팀의 단위시험 통과만으로 장비 통합이 끝났다고
+보지 않는다.
 
 ## 1. 통합 기준
 
-- 모든 PC는 같은 Git commit의 `patrol_interfaces`를 빌드한다.
-- `robot_id`와 namespace는 `robot1`, `robot6`을 사용한다.
+- 모든 PC는 같은 Git commit의 `patrol_interfaces`, `patrol_amr_interfaces`를 빌드한다.
+- `robot_id`와 namespace는 `robot1`, `robot6`이다.
 - 외부 순찰은 `Patrol` Action만 사용한다.
-- AMR 제어와 로컬 감지 사이에 별도 공용 감지 Action을 요구하지 않는다.
 - 최종 속도는 각 AMR의 `local_safety_supervisor`만 발행한다.
-- EStop은 예약 인터페이스이며 현재 시험 범위에서 제외한다.
+- 운영자 명령은 PC 3 터미널에서 `/control/*` 서비스로 보낸다.
 
 ## 2. 기동 순서
 
-1. PC 3 Offboard Discovery Server와 기존 TB4 Onboard Discovery를 확인한다.
-2. `robot1`, `robot6`의 AMR 노드와 Patrol Action Server를 기동한다.
-3. 시스템 모니터의 `/system_monitor/report_detection` Service Server를 기동한다.
-4. CCTV `gate_cam`, `center_cam`, `cam_master`를 기동한다.
-5. Control Server를 기동한다.
-6. 토픽·Action·Service 타입과 송수신 주체를 확인한다.
+1. PC 3 Offboard Discovery Server와 각 TB4 Onboard Discovery를 확인한다.
+2. PC 1·2에서 각 로봇의 localization, Nav2, `amr.launch.py`를 띄운다.
+3. PC 3에서 시스템 모니터를 띄운다(`/system_monitor/report_detection`).
+4. PC 4에서 `gate_cam`, `center_cam`, `cam_master`를 띄운다.
+5. PC 3에서 관제를 띄운다.
+6. 토픽·Action·Service의 타입과 송수신 노드를 확인한다.
+7. `/control/start_patrol`로 교대 순찰을 시작한다.
 
 ## 3. 필수 종단 흐름
 
 ### IT-01 순찰 시작
 
 ```text
-patrol_allowed=true
-→ Patrol Goal
-→ Goal accepted
-→ WAITING_FOR_TOKEN
-→ DriveToken
-→ token_valid=true
-→ UNDOCKING
-→ PATROLLING
+start_patrol → patrol_allowed=true → Patrol Goal → 수락 → WAITING_FOR_TOKEN
+→ DriveToken → token_valid=true → UNDOCKING → INITIAL_POSE_READY → PATROLLING
 ```
 
-합격 조건은 `WAITING_FOR_TOKEN` 전에 AMR이 이동하지 않고, 동시에 두 로봇에
-유효한 Token이 발급되지 않는 것이다.
+합격: `WAITING_FOR_TOKEN` 전에 AMR이 움직이지 않는다. 두 로봇이 동시에 유효한 Token을 갖지 않는다.
 
-### IT-02 waypoint와 완료
+### IT-02 경유지, 도킹, 교대
 
 ```text
-PATROLLING
-→ WAYPOINT_REACHED 반복
-→ DOCKING
-→ Patrol Result
-→ 빈 DriveToken
+PATROLLING → WAYPOINT_REACHED 반복 → DOCKING → Result SUCCEEDED
+→ 빈 DriveToken → 다음 로봇 Patrol Goal
 ```
 
-Result의 outcome과 reason이 Action 정의와 일치하고 완료 뒤 Token이 회수돼야 한다.
+합격: 각 로봇이 자기 도크(`robot1` (0, 0), `robot6` (0, −0.7))로 돌아와 도킹하고, 도킹 뒤 다른 로봇이 출발한다.
 
 ### IT-03 차량 대피와 재개
 
 ```text
-patrol_allowed=false
-→ MOVE_TO_SAFE_ZONE
-→ MOVING_TO_SAFE_ZONE
-→ patrol_allowed=true
-→ RESUME_PATROL
-→ RESUMING
-→ PATROLLING
+patrol_allowed=false → MOVE_TO_SAFE_ZONE → MOVING_TO_SAFE_ZONE
+→ patrol_allowed=true → RESUME_PATROL → RESUMING → PATROLLING
 ```
 
-동일 permit 반복에는 명령이 중복되지 않아야 한다. 안전구역 이동 중에는 기존
-Token을 유지하고, 별도 Patrol Goal을 만들지 않는다.
+합격: 같은 permit이 반복돼도 명령이 중복되지 않는다. 대피 중 Token이 유지되고 새 Goal이 생기지 않는다.
 
 ### IT-04 감지와 저장
 
 ```text
-AMR 내부 감지
-→ DETECTION_PROCESSING
-→ DETECTION_CONFIRMED + event_id + event_type
-→ ReportDetection
-→ STORED 또는 DUPLICATE
+후보 → patrol_stop → DETECTION_PROCESSING → DetectEvent(정렬·검증)
+→ DETECTION_CONFIRMED + event_id → ReportDetection → STORED → patrol_resume → PATROLLING
 ```
 
-관제는 Patrol Feedback으로 사건을 식별하고, 시스템 모니터는 같은 event_id의
-동일 요청을 중복 저장하지 않는다. `REJECTED` 사유도 확인한다.
+합격: Feedback의 `event_id`와 저장된 사건의 `event_id`가 같다. 같은 요청을 다시 보내도 중복 저장되지 않는다. 정렬 회전이 `cmd_vel_yaw` → `local_safety_supervisor` → `cmd_vel`로 나간다.
 
 ### IT-05 화재 hold
 
-`DETECTION_CONFIRMED + FIRE` 후 현재 Action의 Token 갱신은 허용하되, Action 종료
-뒤 다른 로봇의 새 Goal과 Token을 차단한다. 운영자가 hold를 명시적으로 해제한
-뒤에만 다음 순찰을 허용한다.
+`DETECTION_CONFIRMED + FIRE` 뒤 현재 임무는 끝까지 진행하고, 임무가 끝나면 다음 로봇이
+출발하지 않는다. `/control/clear_fire_hold` 뒤에만 다음 순찰이 시작된다.
 
-### IT-06 취소와 오류
+### IT-06 EStop
 
-- Cancel 요청 시 빈 Token이 Action 종료보다 먼저 발행되는지 확인한다.
-- Goal 거절, Action 실패, Result 오류 뒤 활성 슬롯이 해제되는지 확인한다.
-- Token 발행 중단과 lease 만료 뒤 최종 속도가 차단되는지 확인한다.
-- 통신 복구만으로 자동 출발하지 않는지 확인한다.
-
-### IT-07 CCTV
-
-- gate 토픽은 `ENTERING`, `EXITED`만 수락한다.
-- center 토픽은 `PARKED`, `EXITING`만 수락한다.
-- `cam_master`가 상태에 맞는 `patrol_allowed`를 5 Hz로 제공하는지 확인한다.
-- CCTV가 AMR 제어 토픽을 직접 발행하지 않는지 확인한다.
-
-## 4. 계약 검증
-
-```bash
-python3 scripts/verify_interface_v1.py
-colcon build --packages-select patrol_interfaces patrol_control
-colcon test --packages-select patrol_interfaces patrol_control
-colcon test-result --verbose
+```text
+set_estop(active=true) → 즉시 0 속도 → BLOCKED
+→ set_estop(active=false) → 계속 정지 → resume → RESUME_PATROL → PATROLLING
 ```
 
-검증 항목:
+합격: 해제 뒤 resume 전까지 움직이지 않는다. EStop이 걸린 로봇은 새 순찰에도 출발하지 않는다. `all`은 두 로봇 모두에 적용된다.
 
-- 소스 트리와 CMake 등록 목록 일치
-- 설치된 필드·상수와 원본 IDL 일치
-- manifest SHA-256 일치
-- 삭제된 타입 import 불가
-- 관제 상태 머신·콜백 테스트 통과
-- 문서 링크와 인터페이스 이름 일치
+### IT-07 Token 끊김
+
+관제를 멈추거나 Token 발행을 끊으면 lease(1초) 안에 0 속도가 되고 `BLOCKED`가 된다.
+30초 안에 돌아오면 이어서 진행하고, 아니면 `FAILED(TOKEN_EXPIRED)`로 끝난다.
+
+### IT-08 도킹 재시도와 제외
+
+도킹을 일부러 실패시키면 최대 3번 시도한 뒤 도크 앞에 정차하고 `FAILED(DOCKING_FAILED)`를
+돌려준다. 관제는 그 로봇을 순서에서 빼고 다른 로봇으로 순찰을 이어 간다.
+`/control/start_patrol` 뒤 다시 순서에 들어간다.
+
+### IT-09 배터리
+
+배터리 15% 미만이면 귀환·도킹 후 `FAILED(LOW_BATTERY)`. 관제는 다음 로봇에 차례를 넘기고,
+그 로봇은 80%가 될 때까지 출발시키지 않는다.
+
+### IT-10 취소와 관제 재시작
+
+- `/control/cancel_patrol`: 빈 Token이 Action 종료보다 먼저 나가고, `CANCELED`로 끝나며 교대가 멈춘다.
+- 순찰 중 관제를 다시 띄우면 남아 있는 임무를 취소하고, 끝난 것이 확인될 때까지 출발시키지 않는다.
+- 통신 복구만으로 새로 출발하지 않는다.
+
+### IT-11 CCTV
+
+- gate 토픽은 `ENTERING`, `EXITED`만, center 토픽은 `PARKED`, `EXITING`만 받는다.
+- `cam_master`가 상태에 맞는 `patrol_allowed`를 5 Hz로 발행한다.
+- CCTV가 AMR 제어 토픽을 직접 발행하지 않는다.
+
+## 4. 빌드와 자동 시험
+
+```bash
+colcon build
+python3 scripts/verify_interface_v1.py
+bash scripts/check_tracked_paths.sh
+(cd src/patrol_control && python3 -m pytest -q test)
+(cd src/patrol_amr_safety && python3 -m pytest -q test)
+(cd src/patrol_vision && python3 -m pytest -q test)
+(cd src/patrol_sysmon && python3 -m pytest -q)
+```
+
+`verify_interface_v1.py`는 소스 트리·CMake 등록·필드·상수·manifest SHA-256을 확인한다.
 
 ## 5. 완료 판정
 
-다음 결과를 구분해 기록한다.
+다음 단계를 구분해 기록한다.
 
-- 단위시험 완료
-- 같은 PC의 ROS smoke test 완료
-- 여러 PC의 DDS 송수신 완료
-- 실제 AMR 주행 완료
-- 실제 CCTV와 감지 저장까지 포함한 종단시험 완료
+- 단위시험 통과
+- 같은 PC에서 ROS 노드 연결 확인
+- 여러 PC 사이 DDS 송수신 확인
+- 실제 AMR 주행
+- 실제 CCTV와 감지 저장까지 포함한 종단시험
 
-문서 작성, 테스트 절차 작성 또는 mock 시험만으로 실제 장비 통합 완료를 선언하지
-않는다. 실패 시 생산자·소비자·QoS·namespace·시간 순서를 함께 기록한다.
+문서나 mock 시험만으로 실제 장비 통합 완료를 선언하지 않는다. 실패하면 생산자·소비자·
+QoS·namespace·시간 순서를 함께 기록한다.
 
-## 6. 범위 밖
-
-- EStop 실행과 해제
-- 자동 역할 교대와 배터리 정책
-- `DetectionEvidence` 전용 토픽
-- 시스템 모니터의 상세 Dashboard·DB 보존 정책
+현재 상태: 자동 시험은 모두 통과한다. 실제 TurtleBot 4 두 대로 하는 종단 통합시험은
+하지 않았다. 시연 영상에 나온 범위(순찰·도킹 복귀, 차량 대피·재개, 감지 정지·기록·재개, CCTV 판정)
+밖의 기능(교대 순찰, EStop, 정렬 회전, 도킹 재시도, 배터리 귀환)은 자동 시험으로만 확인했다.

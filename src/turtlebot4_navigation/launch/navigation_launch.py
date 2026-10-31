@@ -234,7 +234,8 @@ def generate_launch_description():
                 respawn_delay=2.0,
                 parameters=[configured_params],
                 arguments=['--ros-args', '--log-level', log_level],
-                remappings=remappings,
+                # 최종 cmd_vel은 local_safety_supervisor만 낸다(DriveToken · EStop 게이트).
+                remappings=remappings + [('cmd_vel', 'cmd_vel_safety_in')],
             ),
             Node(
                 package='nav2_lifecycle_manager',
@@ -323,7 +324,7 @@ def generate_launch_description():
                         plugin='opennav_docking::DockingServer',
                         name='docking_server',
                         parameters=[configured_params],
-                        remappings=remappings,
+                        remappings=remappings + [('cmd_vel', 'cmd_vel_safety_in')],
                     ),
                     ComposableNode(
                         package='nav2_lifecycle_manager',

@@ -20,6 +20,7 @@ uint16 REASON_LOCALIZATION_LOST=7
 uint16 REASON_DOCKING_FAILED=8
 uint16 REASON_TIMEOUT=9
 uint16 REASON_INTERNAL_ERROR=10
+uint16 REASON_LOW_BATTERY=11   # 2.1.0: 배터리 부족으로 귀환·도킹 완료
 
 uint8 outcome
 uint16 reason_code

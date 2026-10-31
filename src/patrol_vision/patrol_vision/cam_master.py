@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """cam_master: gate/center CameraState를 구독해 patrol_allowed(Bool) 발행."""
 import time                                                         # monotonic 시간 측정용
+
+from patrol_interfaces.msg import CameraState                        # 구독할 메시지 타입
+# gate/center와 동일한 이벤트 QoS(중복 정의 방지)
+from patrol_vision.cam_common import CCTV_EVENT_QOS
 import rclpy                                                         # ROS2 파이썬 클라이언트
 from rclpy.duration import Duration                                  # QoS deadline 설정용
 from rclpy.node import Node                                          # ROS2 노드 베이스 클래스
 from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy  # QoS 설정
 from std_msgs.msg import Bool                                        # patrol_allowed 메시지 타입
-from patrol_interfaces.msg import CameraState                        # 구독할 메시지 타입
-from patrol_vision.cam_common import CCTV_EVENT_QOS                  # gate/center와 동일한 이벤트 QoS(중복 정의 방지)
 
 # patrol_allowed QoS: 최근 1개만 유지, 500ms 이내 발행 보장(deadline)
 PATROL_ALLOWED_QOS = QoSProfile(
@@ -21,8 +23,10 @@ PATROL_ALLOWED_QOS = QoSProfile(
 GATE_CAMERA_ID = 'gate_cam'          # gate_event 토픽에서 허용할 camera_id
 CENTER_CAMERA_ID = 'center_cam'      # center_event 토픽에서 허용할 camera_id
 
-GATE_ALLOWED_STATES = {CameraState.STATE_ENTERING, CameraState.STATE_EXITED}      # gate_event 허용 state
-CENTER_ALLOWED_STATES = {CameraState.STATE_PARKED, CameraState.STATE_EXITING}     # center_event 허용 state
+# gate_event 허용 state
+GATE_ALLOWED_STATES = {CameraState.STATE_ENTERING, CameraState.STATE_EXITED}
+# center_event 허용 state
+CENTER_ALLOWED_STATES = {CameraState.STATE_PARKED, CameraState.STATE_EXITING}
 
 # vision.md 3절: 상태 -> patrol_allowed 매핑
 PATROL_ALLOWED_BY_STATE = {
@@ -35,6 +39,7 @@ PATROL_ALLOWED_BY_STATE = {
 EVENT_ID_TTL_SEC = 600.0          # Q-13: event_id 중복 판정 캐시를 10분간 유지
 EVENT_TIMEOUT_WARN_SEC = 5.0      # 이 시간 이상 이벤트 미수신 시 경고 로그(값 자체는 유지)
 PATROL_ALLOWED_PUBLISH_HZ = 5.0   # patrol_allowed를 값 변화와 무관하게 반복 발행하는 주기
+
 
 class CamMaster(Node):
     def __init__(self):
@@ -58,7 +63,8 @@ class CamMaster(Node):
 
         self.create_timer(1.0, self._check_timeouts)                    # 1Hz: 이벤트 미수신 감시
         self.create_timer(60.0, self._purge_old_event_ids)              # 60s: 오래된 event_id 캐시 정리
-        self.create_timer(1.0 / PATROL_ALLOWED_PUBLISH_HZ, self._republish_patrol_allowed)  # 5Hz: 반복 발행
+        # 5Hz: 반복 발행
+        self.create_timer(1.0 / PATROL_ALLOWED_PUBLISH_HZ, self._republish_patrol_allowed)
 
     def _on_gate_event(self, msg: CameraState):
         self._last_gate_time = time.monotonic()                        # 수신 시각 갱신(timeout 감시용)
@@ -71,7 +77,8 @@ class CamMaster(Node):
     # gate_event/center_event로 들어온 메시지 하나를 검증 후 patrol_allowed에 반영하는 함수.
     # 아래 5개 검증을 순서대로 통과해야만 값이 바뀐다 - 하나라도 걸리면 그 즉시 return으로
     # 폐기되고, 그 이전 patrol_allowed 값은 그대로 유지된다.
-    def _handle_event(self, msg: CameraState, allowed_states, topic_label: str, expected_camera_id: str):
+    def _handle_event(self, msg: CameraState, allowed_states, topic_label: str,
+                      expected_camera_id: str):
         # 1) camera_id 검증: 이 콜백은 gate_event든 center_event든 똑같이 _handle_event를
         # 타는데, expected_camera_id로 "이 토픽에는 이 카메라만 보내야 한다"를 강제한다.
         # 엉뚱한 camera_id가 섞여 들어오는 걸(설정 실수, 오작동 등) 여기서 걸러낸다.
@@ -162,6 +169,7 @@ class CamMaster(Node):
         for eid in expired:
             del self._seen_event_ids[eid]                               # 캐시에서 제거(메모리 무한 증가 방지)
 
+
 def main():
     rclpy.init()                                                        # ROS2 초기화
     node = CamMaster()                                                  # 노드 생성
@@ -170,6 +178,7 @@ def main():
     finally:
         node.destroy_node()                                             # ROS2 노드 정리
         rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()
