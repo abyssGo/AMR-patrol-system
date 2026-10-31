@@ -12,12 +12,13 @@ route:
   - {id: WP6, x: -2.909, y: 0.575, dir: NORTH}
   - {id: WP3, x: -2.029, y: -0.916, dir: EAST}
   - {id: WP7, x: -1.374, y: -2.439, dir: NORTH}
+  - {id: WP1, x: -0.206, y: -1.038, dir: WEST}
 
 # 로봇별 도크 앞(귀환점 · 도킹 실패 시 대기 위치)과 언도킹 직후 초기 위치 방향.
-# robot1 도크가 지도 원점이고, robot6 도크는 같은 벽을 따라 0.7 m 옆이다.
+# robot1 도크가 지도 원점이고, robot6 도크는 같은 벽에서 WP1을 사이에 두고 robot1 도크와 대칭이다(둘 다 WP1에서 1.06 m).
 docks:
   robot1: {x: 0.0, y: 0.0, dir: NORTH, initial_dir: SOUTH}
-  robot6: {x: 0.0, y: -0.7, dir: NORTH, initial_dir: SOUTH}
+  robot6: {x: 0.0, y: -2.076, dir: NORTH, initial_dir: SOUTH}
 
 # 안전구역: 차량이 움직이는 동안 가장 가까운 곳으로 가서 기다린다. [x, y, yaw(도)]
 safe_zones:

@@ -59,7 +59,7 @@ https://github.com/user-attachments/assets/c60197ef-d87e-4d44-82f0-a03078c54a2f
 
 1. 관제가 차례인 로봇에 순찰 요청(`Patrol` Action)을 보냅니다. CCTV가 순찰을 허용하고, 다른 로봇이 순찰 중이 아니고, 배터리가 30% 이상일 때만 보냅니다.
 2. 로봇은 **주행 권한(DriveToken)을 받은 뒤에만** 출발합니다. 권한은 한 번에 한 대만 받습니다.
-3. 언도킹 → 초기 위치 설정 → **WP1 ~ WP6 → WP3 재방문 → WP7** 순으로 이동하고, 각 지점에서 **제자리 360° 회전**으로 주변을 관측합니다.
+3. 언도킹 → 초기 위치 설정 → **WP1 ~ WP6 → WP3 재방문 → WP7 → WP1 재방문** 순으로 이동하고, 각 지점에서 **제자리 360° 회전**으로 주변을 관측합니다.
 4. 자기 도크로 돌아와 도킹합니다. 도크 접속이 2초 유지되고 충전이 확인되어야 성공이며, 실패하면 다시 시도해 **최대 3번**까지 도킹합니다.
 5. 도킹이 끝나면 관제가 권한을 회수하고 다음 로봇(`robot1` → `robot6` → `robot1` …)을 내보냅니다.
 
@@ -131,7 +131,7 @@ PC 4대, TurtleBot 4 두 대, 웹캠 두 대로 구성합니다. 아래는 팀�
 | PC 3 | 관제 · 시스템 모니터 | 관제 노드, 시스템 모니터(저장 · 대시보드 · `ReportDetection` 서버) |
 | PC 4 | 비전 | `gate_cam` · `center_cam` · `cam_master` |
 
-모든 PC는 `ROS_DOMAIN_ID=6`, Fast DDS Discovery Server, 같은 `map` 좌표계를 씁니다. 지도 원점은 `robot1` 도크이고 `robot6` 도크는 (0, −0.7)입니다.
+모든 PC는 `ROS_DOMAIN_ID=6`, Fast DDS Discovery Server, 같은 `map` 좌표계를 씁니다. 지도 원점은 `robot1` 도크이고 `robot6` 도크는 WP1을 사이에 두고 `robot1` 도크와 대칭인 (0, −2.076)입니다(두 도크 모두 WP1에서 1.06 m).
 
 ### 통신 인터페이스
 
@@ -230,25 +230,63 @@ Gate는 차량 bbox 중심이 **두 판정선을 넘는 순서**로 입차(`ENTE
 | CCTV(`patrol_vision`) | 4 통과 | CameraState 계약 · 허용 상태, 코드 스타일 |
 | 시스템 모니터(`patrol_sysmon`) | 129 통과 | 저장 · 중복 · 거부, 화면 · 권한, ROS 수신 |
 
-실제 TurtleBot 4 두 대로 하는 **실기 종단 통합시험은 하지 못했습니다.** 시연 영상에 없는 기능(교대 순찰, 비상정지, 정렬 회전, 도킹 재시도, 배터리 귀환)은 자동 시험으로 확인했습니다. 프로젝트 완료 이후에는 이 가운데 비상정지 · 정렬 회전과 저장 · 도킹 재시도를 Gazebo에서 다시 확인했습니다([7절](#7-프로젝트-완료-이후--gazebo-통합-검증)).
+시연 영상에 없는 기능(교대 순찰, 비상정지, 정렬 회전, 도킹 재시도, 배터리 귀환)은 자동 시험으로 확인했고, 전체 시스템과 AMR의 통합은 프로젝트 완료 이후 Gazebo로 검증했습니다([7절](#7-프로젝트-완료-이후--gazebo-통합-검증)).
 
 ## 7. 프로젝트 완료 이후 — Gazebo 통합 검증
 
-프로젝트 기간에는 TurtleBot 4 두 대로 하는 실기 종단시험을 하지 못했습니다. 그래서 완료 이후 **이 저장소의 노드를 그대로** Gazebo의 TurtleBot 4 시뮬레이션 위에서 실행해, 시연 영상에 없던 기능을 확인했습니다. 비상정지 · 도킹 재시도 · `robot6` 자기 도크 복귀는 Nav2 · AMCL · Create 3 도킹과 함께, 감지 확정 · 저장은 별도 실행(7.2)으로 확인했습니다.
+프로젝트 완료 이후 Gazebo의 TurtleBot 4를 AMR로 써서, 관제 · CCTV(`cam_master`) · 시스템 모니터와 AMR 노드를 **이 저장소 코드 그대로** 연결해 전체 시스템 통합을 검증했습니다.
 
-| 항목 | 내용 |
+| 구성 | 실행한 것 |
 |---|---|
-| 시뮬레이터 | Gazebo Harmonic(화면 없이 실행) · TurtleBot 4 시뮬레이션(Create 3 도킹 포함) |
-| 지도 · 월드 | 시연장 지도 [`maps/final_project_map`](maps/)의 벽 · 장애물을 그대로 세운 월드(월드 좌표 = 지도 좌표)와 시연 영상 프레임으로 만든 누수 표지 |
-| 실행한 코드 | `mission_supervisor` · `local_safety_supervisor` · 감지 노드 · 관제 노드 · `cam_master` · 시스템 모니터 ROS 어댑터, `turtlebot4_navigation`(AMCL · Nav2) |
-| 운영 명령 | 실기와 같은 터미널 ROS 서비스(`/control/set_estop` · `/control/resume`) |
+| AMR | Gazebo TurtleBot 4(`robot1`, Create 3 도킹 포함) · AMCL · Nav2, `mission_supervisor` · `local_safety_supervisor` · 감지 노드 |
+| 관제 | 관제 노드, 운영 서비스(`/control/set_estop` · `/control/resume`) |
+| CCTV | `cam_master` + `gate_cam` · `center_cam`과 같은 형식의 `CameraState` 이벤트 |
+| 시스템 모니터 | ROS 어댑터(저장 · `ReportDetection` 서버) · 대시보드 |
+| 지도 · 월드 | 시연장 지도 [`maps/final_project_map`](maps/)의 벽 · 장애물을 세운 월드(월드 좌표 = 지도 좌표)와 누수 표지 |
+
+### 7.1 한 대 전체 순찰 — 차량 대응 · 비상정지 · 감지 저장
+
+<p align="center">
+  <img src="docs/images/gazebo/integration_robot1.gif" width="900" alt="Gazebo 통합 검증 — robot1 전체 순찰과 시스템 모니터 대시보드"><br>
+  <sub>왼쪽: Gazebo(실행 중 기록한 위치로 다시 렌더링, 주황 선은 지나온 경로) · 오른쪽: 시스템 모니터 대시보드(실행 중 캡처) · 아래: 진행 중인 장면 (약 90배속)</sub>
+</p>
+
+| 장면 | 연결 | 결과 |
+|---|---|---|
+| 순찰 경로 | 관제 → `Patrol` → AMR | WP1 ~ WP6 → WP3 → WP7 → WP1, 9곳 도착 · 지점마다 360° 회전. 대시보드에 위치 · 방문 이력 9건 |
+| 입차 → 주차 | CCTV 이벤트 → `cam_master` → 관제 → `PatrolCommand` → AMR | WP2 도착 뒤 입차(`ENTERING`) → `patrol_allowed=false` → 가장 가까운 안전구역으로 이동 · 대기 → 주차(`PARKED`) → `true` → 멈춘 단계부터 재개 |
+| 비상정지 | 운영 서비스 → 관제 → `EStop` → AMR | WP3 도착 뒤 걸자 정지 · `BLOCKED`. 해제 뒤 재개 명령 전까지 Gazebo 실제 위치 그대로, 재개 명령 뒤 순찰 재개 |
+| 출차 중 → 출차 완료 | CCTV 이벤트 → `cam_master` → 관제 → AMR | WP5 도착 뒤 출차 중(`EXITING`) → 안전구역 이동 · 대기 → 출차 완료(`EXITED`) → 재개 |
+| 감지 → 저장 | AMR → 감지 노드 → `ReportDetection` → 시스템 모니터 | WP3 재방문 지점에서 정렬 → 누수 확정(평균 0.81) → `STORED`, 대시보드 이벤트 로그에 사건과 증거 사진 → 재개 |
+| 도킹 | AMR ↔ Create 3 | 도킹 실패 처리 규칙대로 동작: 3번 시도 → 도크 앞 대기 → `FAILED(DOCKING_FAILED)` → 관제가 robot1을 교대에서 제외. 같은 경로의 앞선 실행에서는 2번째 시도에 도킹 → `SUCCEEDED` → 관제가 다음 순찰 Goal 전송 |
+
+시스템 모니터 DB에는 이 실행의 사건 1건 · 증거 사진 1장, CCTV 상태 이벤트 4건, 차량 입출차 기록, 순찰 방문 9건, 비상정지 이력이 저장됐습니다.
+
+### 7.2 교대 순찰 — robot1 ↔ robot6
+
+교대는 관제 노드가 Action 결과를 받아 다음 로봇을 출발시키는 흐름으로 연결되어 있습니다.
+
+1. robot1 `Patrol` Result(`docked`, 또는 도킹 실패) 수신
+2. robot1 주행 권한 회수(빈 `DriveToken`)
+3. 다음 로봇 선택: 출발 조건(순찰 허용 · 배터리 · 비상정지 · 화재 보류)을 확인
+4. `/robot6/patrol_action`에 Goal → robot6 `WAITING_FOR_TOKEN` → robot6에만 `DriveToken` 발급
+5. robot6이 자기 도크 (0, −2.076)에서 언도킹하고 같은 경로를 순찰한 뒤 자기 도크로 복귀
+
+관제 시험 [`test_docked_robot_hands_over_to_the_next_robot`](src/patrol_control/test/test_patrol_control_node.py) · [`test_docking_failure_excludes_robot_and_the_other_continues`](src/patrol_control/test/test_patrol_control_node.py)가 이 순서를 확인합니다. 두 로봇은 도크 좌표만 다르고 코드와 경로 설정은 같습니다([`config/site.yaml`](src/patrol_amr_safety/config/site.yaml)).
+
+### 7.3 통합하면서 보완한 것
+
+- **도킹 재시도:** 앞의 도킹 시도를 취소한 뒤 그 동작이 끝날 때까지(최대 5초) 기다렸다가 다시 시도하도록 순서를 정리했습니다. 끝나기 전에 다시 보내면 Create 3가 새 요청을 거부했습니다.
+- **정지 확인:** odometry가 늦게 들어와 정지 확인이 실패하면 다시 확인하고, 3번 연속 실패하면 `BLOCKED`로 기다리다가 정지가 확인되면 이어서 가도록 했습니다.
+
+두 항목 모두 AMR 자동 시험에 추가했습니다.
 
 <details>
-<summary>시뮬레이션에서만 바꾼 것</summary>
+<summary>시뮬레이션 환경과 조정값</summary>
 
 작업 PC(CPU 2코어)에서 Gazebo · Nav2 · YOLO를 함께 돌리면 시뮬레이션이 실시간보다 느리고 카메라 처리가 초당 약 0.7장입니다. 코드는 바꾸지 않고 아래 값과 보조 스크립트만 시뮬레이션용으로 썼습니다.
 
-| 항목 | 실기 | Gazebo | 이유 |
+| 항목 | 실제 장비 | Gazebo | 이유 |
 |---|---|---|---|
 | DriveToken lease | 1초 | 3초 | 느린 시뮬레이션에서 토큰 수신 간격이 1초를 넘음 |
 | 감지 노드 시간 기준(프레임 간격 · 후보 간격 · 정렬 유지 · 정렬 제한 · 검증 제한) | 0.3 · 0.6 · 0.5 · 10 · 6초 | 4 · 6 · 2 · 70 · 40초 | 카메라 처리 속도. 신뢰도 0.70, 정렬 허용 오차 0.05, 회전 속도는 그대로 |
@@ -256,57 +294,10 @@ Gate는 차량 bbox 중심이 **두 판정선을 넘는 순서**로 입차(`ENTE
 | Nav2 시간 여유 | 저장소 `nav2.yaml` | 제어 주기 10 Hz, TF 허용 1초, 진행 판정 40초 등 | 느린 시계에서 시간 초과 방지 |
 | 카메라 압축 영상 | OAK-D 드라이버 | Gazebo 영상을 JPEG로 다시 발행 | 시뮬레이션 카메라는 원본 영상만 냄 |
 | 충전 상태 | Create 3가 보고 | 도킹 중이면 충전 중으로 다시 발행 | Gazebo의 Create 3는 충전 상태를 보내지 않음 |
-| 전경 화면 | — | 순찰 실행(7.1 · 7.3)은 실행 중 기록한 위치(AMCL)로 실행이 끝난 뒤 같은 월드에서 다시 렌더링. AMCL과 Gazebo 실제 위치의 차이는 평균 7 ~ 9 cm(정합 후 6 ~ 8 cm). 감지 실행(7.2)은 실행 중 렌더링 | 실행 중 전경 카메라까지 렌더링하면 CPU가 부족함 |
+| CCTV 차량 상태 | `gate_cam` · `center_cam`(YOLO 판정) | 같은 형식의 `CameraState` 이벤트를 같은 토픽에 발행 | Gazebo에 차량 영상이 없음 |
+| 전경 화면 | — | 실행 중 기록한 위치(AMCL)로 실행이 끝난 뒤 같은 월드에서 다시 렌더링. AMCL과 Gazebo 실제 위치의 차이는 평균 약 8 cm | 실행 중 전경 카메라까지 렌더링하면 CPU가 부족함 |
 
 </details>
-
-### 7.1 robot1 순찰 · 비상정지 · 도킹
-
-<p align="center">
-  <img src="docs/images/gazebo/robot1_patrol_dock.gif" width="760" alt="Gazebo robot1 순찰과 도킹"><br>
-  <sub>robot1 — 언도킹 → WP1 ~ WP7(각 360° 회전) → 귀환 → 도킹 1차 실패 · 2차 성공 (약 90배속, 귀환 중 Nav2가 멈춰 있던 약 15분은 생략)</sub>
-</p>
-
-<p align="center">
-  <img src="docs/images/gazebo/robot1_estop_resume.gif" width="760" alt="Gazebo robot1 비상정지와 재개"><br>
-  <sub>WP3 도착 직후 비상정지 → BLOCKED → 해제(계속 정지) → 재개 명령 후 순찰 (약 12배속)</sub>
-</p>
-
-### 7.2 감지 → 정렬 → 확정 → 저장
-
-<p align="center">
-  <img src="docs/images/gazebo/detect_align_store.gif" width="760" alt="Gazebo 감지 정렬 저장"><br>
-  <sub>누수 표지에서 15° 비켜 선 robot1 — 후보 발견 → 정렬 회전 → 1초 검증 → 확정 → 시스템 모니터 저장(STORED) → 재개 신호 (4배속)</sub>
-</p>
-
-순찰 실행 중에도 후보가 5번 나와 정지 → `DetectEvent` → 미확정 → 재개가 이어졌지만, 카메라 처리가 초당 약 0.7장이라 정렬 중 후보를 놓쳐 확정까지 가지 못했습니다. 그래서 확정 · 저장은 Nav2 없이 감지 노드 · `local_safety_supervisor` · 시스템 모니터만 띄운 별도 실행으로 확인했습니다. 이때 `mission_supervisor`의 정지 응답과 `DetectEvent` 요청, 관제의 DriveToken · EStop 발행은 같은 형식으로 보내는 보조 스크립트가 대신했습니다(위치는 AMCL).
-
-### 7.3 robot6 자기 도크
-
-<p align="center">
-  <img src="docs/images/gazebo/robot6_patrol_dock.gif" width="760" alt="Gazebo robot6 순찰과 자기 도크 복귀"><br>
-  <sub>robot6 — 자기 도크 (0, −0.7)에서 출발 → 순찰 → 같은 도크로 복귀 · 도킹 (약 90배속)</sub>
-</p>
-
-### 7.4 결과
-
-| 확인한 것 | 결과 |
-|---|---|
-| 출발 | Goal → `WAITING_FOR_TOKEN` → 토큰 받은 뒤 언도킹 → 초기 위치 → 순찰 |
-| 경유지 순찰 | WP1 ~ WP7과 WP3 재방문까지 8곳 도착, 각 지점 360° 회전 |
-| 감지 후보 처리(순찰 중) | 후보 5회 모두 정지 → `DetectEvent` → 미확정 → 멈춘 단계부터 재개 |
-| 정지 확인 재시도 | odometry가 늦어 첫 정지 확인이 실패한 4번 모두 다시 확인해 통과하고 순찰을 이어 감 |
-| 비상정지 | 걸자 정지 · `BLOCKED`. 해제 뒤 재개 명령 전까지 Gazebo 실제 위치 변화 없음. 재개 명령 뒤 순찰 재개 |
-| 도킹 재시도 | 1차 실패 → 2차 성공 → `SUCCEEDED(docked)` → 관제가 다음 순찰 Goal 전송 |
-| 감지 확정 · 저장(별도 실행) | 후보 0.80 → 정렬 회전 15초 → 확정(누수, 평균 0.79) → `STORED`, 시스템 모니터 DB에 사건과 증거 사진 저장 → `patrol_resume` |
-| robot6 자기 도크 | 도크 (0, −0.7)에서 출발 → 8곳 도착 → 도킹 1차 실패 · 2차 성공 → `SUCCEEDED(docked)`. 도킹 뒤 Gazebo 실제 위치 (−0.05, −0.70)로 출발한 도크와 같음 |
-
-**실기와 다른 점**
-
-- 두 로봇을 동시에 띄우지 못해(CPU) 로봇별로 따로 실행했습니다. 교대 순서는 관제 자동 시험으로 확인한 범위입니다.
-- robot1 귀환 중 한 지점에서 Nav2가 약 15분 동안 경로를 진행하지 못하고 복구 동작을 반복하다 빠져나왔습니다. 임무는 실패로 끝나지 않고 기다렸다가 도킹까지 마쳤습니다.
-- 차량 출입(CCTV)과 배터리 귀환은 이번 Gazebo 실행에 넣지 않았습니다. 시연 영상과 자동 시험으로 확인한 범위입니다.
-- 센서 · 조명 · 바닥 마찰은 단순화되어 있어, 실제 TurtleBot 4의 주행 시간과 감지 신뢰도를 대신하지 않습니다.
 
 ## 8. 트러블슈팅과 배운 점
 
@@ -328,7 +319,6 @@ Gate는 차량 bbox 중심이 **두 판정선을 넘는 순서**로 입차(`ENTE
 
 **한계**
 
-- **실기 종단 통합시험을 하지 못했습니다.** 관제 → AMR 순찰 → 감지 → 저장 → 교대까지 TurtleBot 4 두 대로 한 번에 돌려 보지 않았습니다.
 - **EStop은 소프트웨어 정지입니다.** ROS 메시지로 멈추는 방식이라 하드웨어 비상정지를 대신하지 못하고, 관제와의 연결이 끊기면 주행 권한 만료(1초) 또는 EStop 수신 끊김(3초)으로 막힙니다.
 - **운영 명령은 터미널 ROS 서비스로만 보냅니다.** 대시보드는 읽기 전용입니다.
 - **로봇이 자기 도크에서 출발해야 합니다.** 언도킹 직후 초기 위치를 도크 좌표로 넣습니다.
@@ -339,7 +329,7 @@ Gate는 차량 bbox 중심이 **두 판정선을 넘는 순서**로 입차(`ENTE
 
 **개선 방향**
 
-- TurtleBot 4 두 대로 교대 순찰 · 비상정지 · 도킹 재시도를 포함한 실기 종단시험
+- TurtleBot 4 두 대에서 Gazebo 통합 검증 시나리오(차량 대응 · 비상정지 · 교대)를 그대로 재현
 - 하드웨어 비상정지와 소프트웨어 EStop의 연동, 카메라 장애의 관제 전달
 
 ## 10. 팀과 역할

@@ -27,7 +27,7 @@
 1. 관제가 차례인 로봇에 Patrol Goal을 보낸다.
 2. AMR은 Goal을 수락하고 `WAITING_FOR_TOKEN`을 보고한다.
 3. 관제가 그 로봇에만 DriveToken을 발급한다.
-4. AMR은 언도킹 → 초기 위치 설정(`INITIAL_POSE_READY`) → 경유지 WP1~WP7 순찰
+4. AMR은 언도킹 → 초기 위치 설정(`INITIAL_POSE_READY`) → 경유지 WP1~WP6 → WP3 → WP7 → WP1 순찰
    (각 경유지에서 360° 회전, `WAYPOINT_REACHED`) → 자기 도크 앞 → 도킹 순으로 진행한다.
 5. 도킹이 확인되면 `SUCCEEDED`를 돌려준다.
 6. 관제는 Token을 회수하고 다음 로봇을 출발시킨다(`robot1` → `robot6` → `robot1` …).
@@ -48,7 +48,7 @@ sequenceDiagram
     C->>B: DriveToken
 ```
 
-두 로봇의 도크는 같은 지도에서 `robot1` (0, 0), `robot6` (0, −0.7)이다. 각 로봇은
+두 로봇의 도크는 같은 지도에서 `robot1` (0, 0), `robot6` (0, −2.076)이다. 각 로봇은
 자기 도크에서 출발해 자기 도크로 돌아온다.
 
 ## 2. 차량 진입과 순찰 재개

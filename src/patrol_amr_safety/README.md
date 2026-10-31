@@ -4,13 +4,13 @@ AMR PC(PC 1 `robot1`, PC 2 `robot6`)에서 실행하는 노드다. 관제(PC 3)�
 `patrol_interfaces 2.1.0`으로, AMR 안의 감지 노드와는 내부 계약
 `patrol_amr_interfaces/DetectEvent`로 연결한다. 설계는 [docs/amr.md](../../docs/amr.md)를 따른다.
 
-> 교대 순찰, EStop, 정렬 회전, 도킹 재시도, 배터리 귀환은 자동 시험으로 확인했고 TurtleBot 4 실기 종단시험은 하지 않았다.
+> 교대 순찰, EStop, 정렬 회전, 도킹 재시도, 배터리 귀환은 자동 시험으로 확인했고, 전체 시스템과의 통합은 Gazebo로 검증했다([README 7절](../../README.md#7-프로젝트-완료-이후--gazebo-통합-검증)).
 
 ## 노드
 
 | 노드 | 하는 일 |
 |---|---|
-| `mission_supervisor` | 관제의 `/{robot}/patrol_action`(`Patrol`) 서버. Goal 수락 → `WAITING_FOR_TOKEN` → 유효한 `DriveToken`을 받으면 언도킹 · 초기 위치 → WP1 ~ WP7(각 360° 회전) → 자기 도크 앞 → 도킹(최대 3번). 진행은 Feedback, 끝은 Result |
+| `mission_supervisor` | 관제의 `/{robot}/patrol_action`(`Patrol`) 서버. Goal 수락 → `WAITING_FOR_TOKEN` → 유효한 `DriveToken`을 받으면 언도킹 · 초기 위치 → WP1 ~ WP6 → WP3 → WP7 → WP1(각 360° 회전) → 자기 도크 앞 → 도킹(최대 3번). 진행은 Feedback, 끝은 Result |
 | `local_safety_supervisor` | Nav2 후보(`cmd_vel_safety_in`)와 정렬 회전 후보(`cmd_vel_yaw`) 중 0.5초 안에 받은 하나만, `DriveToken`이 유효하고 EStop이 없을 때 `cmd_vel`로 넘긴다. 그 밖에는 0 속도 |
 | `vision_node_v2` | OAK-D 영상을 YOLO로 보고 후보가 보이면 `patrol_stop`으로 정지 요청 → `DetectEvent`를 받아 **정렬(제자리 회전으로 대상을 화면 가운데로) → 검증(신뢰도 0.70 이상 1초)** → 확정이면 `ReportDetection`(event_id = detection_id) → 저장 결과를 받으면 `patrol_resume` |
 
@@ -31,7 +31,7 @@ AMR PC(PC 1 `robot1`, PC 2 `robot6`)에서 실행하는 노드다. 관제(PC 3)�
 | 로봇 | 도크 앞 | 언도킹 직후 초기 위치 |
 |---|---|---|
 | `robot1` | (0, 0) | (0, 0), 남쪽 |
-| `robot6` | (0, −0.7) | (0, −0.7), 남쪽 |
+| `robot6` | (0, −2.076) | (0, −2.076), 남쪽 |
 
 좌표(경로 · 도크 · 안전구역)는 [`config/site.yaml`](config/site.yaml)에서 읽는다. 현장이 바뀌면 이 파일만 고치면 된다.
 

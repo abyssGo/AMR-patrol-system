@@ -51,7 +51,7 @@ Nav2와 로컬 감지에서 생기는 모든 주행 후보는 AMR 내부의 `loc
 
 AMR 로컬 감지는 OAK-D 입력에서 후보·정렬·확정을 처리하며 PC 4의 CCTV 차량 상태 파이프라인과 별개다. `mission_supervisor`와 감지 노드 사이는 AMR 내부 Action `patrol_amr_interfaces/DetectEvent`로 연결한다. 관제는 `Patrol` Feedback으로 감지 진행·확정을 받고, 시스템 모니터는 `ReportDetection` Service로 확정 사건과 증거 사진을 저장한다.
 
-두 로봇은 같은 지도(`final_project_map`, 원점은 `robot1` 도크)를 쓴다. `robot1` 도크는 (0, 0), `robot6` 도크는 (0, −0.7)이다.
+두 로봇은 같은 지도(`final_project_map`, 원점은 `robot1` 도크)를 쓴다. `robot1` 도크는 (0, 0), `robot6` 도크는 (0, −2.076)이다(WP1 기준 `robot1` 도크와 대칭).
 
 ## 4. Discovery 구성
 
