@@ -1,5 +1,3 @@
-
-https://github.com/user-attachments/assets/ad9f358a-069d-40db-96a2-3a063f5d9b5c
 # 🚓 기똥차 — AMR 기반 지하주차장 순찰 시스템
 
 <p align="center">
