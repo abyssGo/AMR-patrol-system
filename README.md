@@ -399,9 +399,9 @@ source /opt/ros/jazzy/setup.bash
 colcon build
 source install/setup.bash
 python3 scripts/verify_interface_v1.py                     # 공용 인터페이스 검사
+(cd src/patrol_vision && python3 -m pytest -q test)        # CCTV
 (cd src/patrol_control && python3 -m pytest -q test)       # 관제
 (cd src/patrol_amr_safety && python3 -m pytest -q test)    # AMR
-(cd src/patrol_vision && python3 -m pytest -q test)        # CCTV
 ```
 
 </details>
@@ -412,7 +412,7 @@ python3 scripts/verify_interface_v1.py                     # 공용 인터페이
 모든 PC에서 같은 커밋으로 `colcon build`하고 `ROS_DOMAIN_ID=6`을 맞춥니다. 기동 순서와 점검 항목은 [docs/integration.md](docs/integration.md)를 따릅니다.
 
 ```bash
-# PC 4 (비전)
+# PC 4 (CCTV 비전)
 ros2 launch patrol_vision cctv_cam.launch.py
 
 # PC 1 (PC 2는 robot1 → robot6)
