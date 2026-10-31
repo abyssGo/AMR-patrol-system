@@ -1,3 +1,5 @@
+
+https://github.com/user-attachments/assets/ad9f358a-069d-40db-96a2-3a063f5d9b5c
 # 🚓 기똥차 — AMR 기반 지하주차장 순찰 시스템
 
 <p align="center">
@@ -38,7 +40,7 @@ TurtleBot 4 두 대가 교대로 지하주차장을 돌며 화재 · 누수 · �
 
 ### ▶ 1분 시연 영상
 
-https://github.com/user-attachments/assets/c60197ef-d87e-4d44-82f0-a03078c54a2f
+https://github.com/user-attachments/assets/9fb1e83c-4c96-4dd2-a96f-84a581d2ab92
 
 정상 순찰(웨이포인트 이동, 회전 관측, 도킹 복귀), 차량 진입 시 안전구역 대기와 주차 후 재개, 이벤트 기록과 조회, 이상 감지 후 정지와 재개를 차례로 담았습니다.
 
