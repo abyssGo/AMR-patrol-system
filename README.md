@@ -55,7 +55,7 @@ https://github.com/user-attachments/assets/9fb1e83c-4c96-4dd2-a96f-84a581d2ab92
 
 <p align="center">
   <img src="docs/images/env_layout.jpg" width="560" alt="시연 환경 평면도"><br>
-  <sub>시연 환경 평면도 — 노란 선은 주차 구역, 분홍 선은 안전구역 표시입니다(발표 자료).</sub>
+  <sub>시연 환경 평면도</sub>
 </p>
 
 ### 3.1 교대 순찰
@@ -75,7 +75,7 @@ https://github.com/user-attachments/assets/9fb1e83c-4c96-4dd2-a96f-84a581d2ab92
 
 <p align="center">
   <img src="docs/images/detect_stop_resume.gif" width="640" alt="이벤트 감지 후 정지와 재개"><br>
-  <sub>이벤트 감지 → 순찰 정지 → 재개 (터미널 로그와 지도, 시연 1.5배속)</sub>
+  <sub>이벤트 감지 → 순찰 정지 → 재개 (터미널 로그와 지도)</sub>
 </p>
 
 <p align="center">
@@ -94,7 +94,7 @@ https://github.com/user-attachments/assets/9fb1e83c-4c96-4dd2-a96f-84a581d2ab92
 
 <p align="center">
   <img src="docs/images/vehicle_response.gif" width="640" alt="차량 진입 시 안전구역 이동과 재개"><br>
-  <sub>차량 진입 → 안전구역 이동 명령, 주차 완료 → 순찰 재개 명령 (대시보드 · 관제 터미널, 시연 3배속)</sub>
+  <sub>차량 진입 → 안전구역 이동 명령, 주차 완료 → 순찰 재개 명령 (대시보드 · 관제 터미널)</sub>
 </p>
 
 ### 3.4 비상정지 · 주행 권한 · 배터리
@@ -250,7 +250,7 @@ Gazebo의 TurtleBot 4를 AMR로 쓰고, CCTV(`cam_master`) · 관제 · 시스�
 
 <p align="center">
   <img src="docs/images/gazebo/integration_robot1.gif" width="900" alt="Gazebo 통합 검증 — robot1 전체 순찰과 시스템 모니터 대시보드"><br>
-  <sub>왼쪽: Gazebo(실행 중 기록한 위치로 다시 렌더링, 주황 선은 지나온 경로) · 오른쪽: 시스템 모니터 대시보드(실행 중 캡처) · 아래: 진행 중인 장면 (약 90배속, 도크 앞 도착까지)</sub>
+  <sub>왼쪽: Gazebo(실행 중 기록한 위치로 다시 렌더링, 주황 선은 지나온 경로) · 오른쪽: 시스템 모니터 대시보드(실행 중 캡처) · 아래: 진행 중인 장면</sub>
 </p>
 
 | 장면 | 연결 | 결과 |
