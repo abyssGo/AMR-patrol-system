@@ -36,6 +36,8 @@ TurtleBot 4 두 대가 교대로 지하주차장을 돌며 화재 · 누수 · �
 
 > 두산 로보틱스 ROKEY Boot Camp 9기 · 지능-1 "SLAM 기반 자율주행 로봇 시스템 구현" · **기똥차** 팀 — 이수현(PM) · 박진용 · 서동권 · 박성현 · 고희태 · 조정묵 · 이영훈 · 노홍동 · 멘토 Andy Kim (이한혁 중도 하차) · 2026.09.04 ~ 09.11(8일)
 
+> 🙋 **박진용 — CCTV 차량 판정 · AMR 이상 감지 · 비전 모델 학습 담당** · [내 역할 자세히 보기](MY_ROLE.md)
+
 ### ▶ 1분 시연 영상
 
 https://github.com/user-attachments/assets/9fb1e83c-4c96-4dd2-a96f-84a581d2ab92
